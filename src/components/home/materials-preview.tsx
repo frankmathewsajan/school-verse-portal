@@ -7,12 +7,12 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 
-// Dummy materials data (would come from API/database)
+// Updated materials data with clear grade levels
 const materials = [
   {
     id: 1,
-    title: "Mathematics Fundamentals",
-    description: "Basic arithmetic, fractions, and geometry concepts for primary school students.",
+    title: "Primary Mathematics Handbook",
+    description: "Essential mathematics concepts for primary school students with practice exercises.",
     fileType: "PDF",
     fileSize: "1.8 MB",
     subject: "Mathematics",
@@ -21,8 +21,8 @@ const materials = [
   },
   {
     id: 2,
-    title: "Science Experiments Guide",
-    description: "Simple science experiments and activities for middle school science classes.",
+    title: "Middle School Science Experiments",
+    description: "Practical science experiments and activities for middle school students.",
     fileType: "PDF",
     fileSize: "3.2 MB",
     subject: "Science",
@@ -31,8 +31,18 @@ const materials = [
   },
   {
     id: 3,
-    title: "Advanced Physics Notes",
-    description: "Comprehensive physics notes covering mechanics, thermodynamics, and electromagnetism.",
+    title: "Secondary English Literature Guide",
+    description: "Comprehensive analysis of literary works for secondary students.",
+    fileType: "PDF",
+    fileSize: "2.7 MB",
+    subject: "English",
+    grade: "9-10",
+    downloadUrl: "#",
+  },
+  {
+    id: 4,
+    title: "Senior Physics - Advanced Concepts",
+    description: "Detailed physics materials for senior secondary covering mechanics, thermodynamics, and electromagnetism.",
     fileType: "PDF",
     fileSize: "4.5 MB",
     subject: "Physics",
@@ -51,7 +61,7 @@ export function MaterialsPreview() {
           centered
         />
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-12">
           {materials.map((material) => (
             <Card key={material.id} className="card-hover h-full">
               <CardHeader>
@@ -86,6 +96,7 @@ export function MaterialsPreview() {
             <Link to="/materials">
               <Book className="mr-2 h-4 w-4" />
               Browse All Materials
+              <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
           </Button>
         </div>

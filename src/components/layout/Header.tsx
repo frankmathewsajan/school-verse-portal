@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Sun, Moon } from 'lucide-react';
+import { Menu, X, Sun, Moon, GraduationCap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -51,15 +51,15 @@ const Header = () => {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
+            <GraduationCap size={28} className="text-primary" />
             <span className="text-xl md:text-2xl font-heading font-bold text-primary">
-              SchoolVerse
+              St. G. D. Convent School
             </span>
           </Link>
 
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center space-x-8">
             <NavLink to="/">Home</NavLink>
-            <NavLink to="/about">About</NavLink>
             <NavLink to="/gallery">Gallery</NavLink>
             <NavLink to="/materials">Materials</NavLink>
           </nav>
@@ -98,7 +98,6 @@ const Header = () => {
         <div className="md:hidden bg-background border-b border-border animate-slide-in">
           <nav className="flex flex-col py-4">
             <NavLink to="/" mobile>Home</NavLink>
-            <NavLink to="/about" mobile>About</NavLink>
             <NavLink to="/gallery" mobile>Gallery</NavLink>
             <NavLink to="/materials" mobile>Materials</NavLink>
             <div className="px-4 py-3">
