@@ -11,32 +11,32 @@ import { Badge } from '@/components/ui/badge';
 const materials = [
   {
     id: 1,
-    title: "Mathematics Study Guide - Grade 10",
-    description: "Comprehensive study materials covering algebra, geometry, and trigonometry for Grade 10 students.",
+    title: "Mathematics Fundamentals",
+    description: "Basic arithmetic, fractions, and geometry concepts for primary school students.",
     fileType: "PDF",
-    fileSize: "2.4 MB",
+    fileSize: "1.8 MB",
     subject: "Mathematics",
-    grade: "10",
+    grade: "1-5",
     downloadUrl: "#",
   },
   {
     id: 2,
-    title: "Physics Lab Manual",
-    description: "Laboratory experiments and procedures for high school physics classes with safety guidelines.",
+    title: "Science Experiments Guide",
+    description: "Simple science experiments and activities for middle school science classes.",
     fileType: "PDF",
-    fileSize: "3.8 MB",
-    subject: "Physics",
-    grade: "11-12",
+    fileSize: "3.2 MB",
+    subject: "Science",
+    grade: "6-8",
     downloadUrl: "#",
   },
   {
     id: 3,
-    title: "English Literature - Selected Readings",
-    description: "Collection of essential readings and analysis questions for senior English literature course.",
-    fileType: "DOCX",
-    fileSize: "1.7 MB",
-    subject: "English",
-    grade: "12",
+    title: "Advanced Physics Notes",
+    description: "Comprehensive physics notes covering mechanics, thermodynamics, and electromagnetism.",
+    fileType: "PDF",
+    fileSize: "4.5 MB",
+    subject: "Physics",
+    grade: "11-12",
     downloadUrl: "#",
   }
 ];
@@ -47,7 +47,7 @@ export function MaterialsPreview() {
       <div className="container mx-auto px-4">
         <SectionTitle 
           title="Learning Materials" 
-          subtitle="Access educational resources, study guides, and supplementary materials to support your learning journey"
+          subtitle="Access educational resources, study guides, and supplementary materials to support your learning journey from Grade 1 to 12"
           centered
         />
         
