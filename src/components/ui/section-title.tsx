@@ -20,9 +20,9 @@ export function SectionTitle({
       centered && "text-center",
       className
     )}>
-      <h2 className="text-2xl font-bold tracking-tight md:text-3xl">{title}</h2>
+      <h2 className="text-2xl font-serif font-bold tracking-tight md:text-3xl">{title}</h2>
       {subtitle && (
-        <p className="text-muted-foreground max-w-[80ch]">
+        <p className="text-muted-foreground max-w-[80ch] font-sans">
           {subtitle}
         </p>
       )}
