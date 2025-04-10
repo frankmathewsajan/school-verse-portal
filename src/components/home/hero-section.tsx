@@ -12,7 +12,7 @@ export function HeroSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-6 animate-fade-in">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground">
-              Welcome to <span className="text-primary">SchoolVerse</span> Academy
+              Welcome to <span className="text-primary">St. G. D. Convent</span> School
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl">
               Empowering students through innovative education and comprehensive learning experiences. 
@@ -20,13 +20,13 @@ export function HeroSection() {
             </p>
             <div className="flex flex-wrap gap-4 pt-2">
               <Button asChild size="lg" className="rounded-full">
-                <Link to="/about">
-                  Learn More
+                <Link to="/gallery">
+                  Explore Gallery
                 </Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="rounded-full">
-                <Link to="/gallery">
-                  Explore Gallery
+                <Link to="/materials">
+                  Learning Materials
                 </Link>
               </Button>
             </div>
