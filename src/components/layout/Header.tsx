@@ -25,25 +25,9 @@ const NavLink = ({ to, children, mobile = false }: NavLinkProps) => (
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(false);
 
-  const toggleDarkMode = () => {
-    const newMode = !darkMode;
-    setDarkMode(newMode);
-    document.documentElement.classList.toggle('dark', newMode);
-    localStorage.setItem('theme', newMode ? 'dark' : 'light');
-  };
 
-  React.useEffect(() => {
-    // Check for saved theme preference or prefer-color-scheme
-    const savedTheme = localStorage.getItem('theme');
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-      setDarkMode(true);
-      document.documentElement.classList.add('dark');
-    }
-  }, []);
+
 
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
@@ -51,8 +35,8 @@ const Header = () => {
         <div className="flex items-center justify-between h-16 md:h-20">
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
-            <GraduationCap size={28} className="text-primary" />
-            <span className="text-xl md:text-2xl font-heading font-bold text-primary">
+            <img src={"rm.png"} alt="Logo" className="pt-2 h-[5pc] w-[5pc]" />
+            <span className="text-xl md:text-2xl font-heading font-bold text-primary pb-2">
               St. G. D. Convent School
             </span>
           </Link>
@@ -66,14 +50,7 @@ const Header = () => {
 
           {/* Actions */}
           <div className="flex items-center space-x-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleDarkMode}
-              className="text-foreground/80"
-            >
-              {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-            </Button>
+
             
             <Link to="/admin">
               <Button variant="outline" className="hidden md:flex">
