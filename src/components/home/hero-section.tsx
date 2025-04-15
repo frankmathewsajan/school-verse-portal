@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
@@ -6,7 +5,7 @@ export function HeroSection() {
   return (
     <section className="relative py-20 md:py-24 lg:py-32 overflow-hidden">
       {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/5 dark:from-primary/20 dark:to-background -z-10" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-secondary/5 -z-10" />
       
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">

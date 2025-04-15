@@ -9,9 +9,9 @@ const About = () => {
   const staffMembers = [
     {
       id: 1,
-      name: "Dr. Jane Smith",
+      name: "Mr. Ashirwad Goyal",
       position: "Principal",
-      bio: "Dr. Smith has over 20 years of experience in education leadership and holds a Ph.D. in Educational Administration.",
+      bio: "Mr. Ashirwad Goyal has over 20 years of experience in education leadership and holds a Ph.D. in Educational Administration.",
       imageUrl: "https://randomuser.me/api/portraits/women/45.jpg"
     },
     {
@@ -21,34 +21,7 @@ const About = () => {
       bio: "Prof. Johnson oversees academic affairs and curriculum development with his extensive background in educational psychology.",
       imageUrl: "https://randomuser.me/api/portraits/men/32.jpg"
     },
-    {
-      id: 3,
-      name: "Ms. Emily Chen",
-      position: "Head of Sciences",
-      bio: "Ms. Chen leads our science department with innovative teaching methods and a passion for STEM education.",
-      imageUrl: "https://randomuser.me/api/portraits/women/33.jpg"
-    },
-    {
-      id: 4,
-      name: "Mr. David Wilson",
-      position: "Head of Arts",
-      bio: "Mr. Wilson brings creativity and artistic excellence to our curriculum with his background in fine arts and education.",
-      imageUrl: "https://randomuser.me/api/portraits/men/52.jpg"
-    },
-    {
-      id: 5,
-      name: "Mrs. Sarah Thompson",
-      position: "Head of Mathematics",
-      bio: "Mrs. Thompson has transformed our mathematics program with her innovative teaching approaches and dedication to student success.",
-      imageUrl: "https://randomuser.me/api/portraits/women/22.jpg"
-    },
-    {
-      id: 6,
-      name: "Dr. Michael Rodriguez",
-      position: "Head of Languages",
-      bio: "Dr. Rodriguez oversees our comprehensive language programs with expertise in linguistics and multicultural education.",
-      imageUrl: "https://randomuser.me/api/portraits/men/42.jpg"
-    }
+    
   ];
 
   return (

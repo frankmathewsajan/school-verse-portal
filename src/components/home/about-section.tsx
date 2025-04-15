@@ -8,32 +8,19 @@ export function AboutSection() {
   const staffMembers = [
     {
       id: 1,
-      name: "Dr. Jane Smith",
+      name: "Mr. Ashirwad Goyal",
       position: "Principal",
-      bio: "Dr. Smith has over 20 years of experience in education leadership and holds a Ph.D. in Educational Administration.",
+      bio: "Mr. Ashirwad Goel has over 20 years of experience in education leadership and holds a Ph.D. in Educational Administration.",
       imageUrl: "https://randomuser.me/api/portraits/women/45.jpg"
     },
     {
       id: 2,
-      name: "Prof. Robert Johnson",
-      position: "Vice Principal",
-      bio: "Prof. Johnson oversees academic affairs and curriculum development with his extensive background in educational psychology.",
+      name: "Mr. Shiv Narayan Goyal",
+      position: "Director",
+      bio: "Mr. Shiv Narayan Goyal oversees academic affairs and curriculum development with his extensive background in educational psychology.",
       imageUrl: "https://randomuser.me/api/portraits/men/32.jpg"
     },
-    {
-      id: 3,
-      name: "Ms. Emily Chen",
-      position: "Head of Sciences",
-      bio: "Ms. Chen leads our science department with innovative teaching methods and a passion for STEM education.",
-      imageUrl: "https://randomuser.me/api/portraits/women/33.jpg"
-    },
-    {
-      id: 4,
-      name: "Mr. David Wilson",
-      position: "Head of Arts",
-      bio: "Mr. Wilson brings creativity and artistic excellence to our curriculum with his background in fine arts and education.",
-      imageUrl: "https://randomuser.me/api/portraits/men/52.jpg"
-    }
+    
   ];
 
   const features = [
@@ -110,7 +97,7 @@ export function AboutSection() {
                   />
                 </div>
                 <div className="ml-3">
-                  <p className="font-medium">Dr. Jane Smith</p>
+                  <p className="font-medium">Mr. Ashirwad Goyal</p>
                   <p className="text-sm text-muted-foreground">Principal, St. G. D. Convent School</p>
                 </div>
               </div>

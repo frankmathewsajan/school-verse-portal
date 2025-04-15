@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -21,9 +20,9 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-8">
           {/* School Info */}
           <div className="space-y-4">
-            <h3 className="text-xl font-bold">SchoolVerse Academy</h3>
+            <h3 className="text-xl font-bold">St.G.D Convent School</h3>
             <p className="text-primary-foreground/80 max-w-xs">
-              Empowering students through innovative education and comprehensive learning experiences since 1985.
+              Empowering students through innovative education and comprehensive learning experiences since 2015.
             </p>
             <div className="flex space-x-4">
               <a href="#" className="text-primary-foreground/80 hover:text-primary-foreground transition-colors">
@@ -71,15 +70,15 @@ const Footer = () => {
             <div className="space-y-3">
               <div className="flex items-start space-x-3">
                 <MapPin size={20} className="text-primary-foreground/80 mt-1 flex-shrink-0" />
-                <span className="text-primary-foreground/80">123 Education Ave, Learning City, LC 12345</span>
+                <span className="text-primary-foreground/80">Siroli, Road Dhanouli, Agra, Uttar Pradesh</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Phone size={20} className="text-primary-foreground/80 flex-shrink-0" />
-                <span className="text-primary-foreground/80">(123) 456-7890</span>
+                <span className="text-primary-foreground/80">8077422014, 9084792142</span>
               </div>
               <div className="flex items-center space-x-3">
                 <Mail size={20} className="text-primary-foreground/80 flex-shrink-0" />
-                <span className="text-primary-foreground/80">info@schoolverse.edu</span>
+                <span className="text-primary-foreground/80">st.g.dconventschool1@gmail.com</span>
               </div>
             </div>
           </div>
@@ -89,7 +88,7 @@ const Footer = () => {
       {/* Copyright */}
       <div className="bg-primary-foreground/10 py-4">
         <div className="container mx-auto px-4 text-center text-primary-foreground/80 text-sm">
-          <p>© {currentYear} SchoolVerse Academy. All rights reserved.</p>
+          <p>© {currentYear} St.G.D Convent School. All rights reserved.</p>
         </div>
       </div>
     </footer>

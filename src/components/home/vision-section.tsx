@@ -53,8 +53,8 @@ export function VisionSection() {
               <div className="mt-4 flex items-center">
                 <div className="w-12 h-12 rounded-full bg-primary/20 mr-3"></div>
                 <div>
-                  <p className="font-medium">Dr. Jane Smith</p>
-                  <p className="text-sm text-muted-foreground">Principal, SchoolVerse Academy</p>
+                  <p className="font-medium">Dr. Ashirwad Goel</p>
+                  <p className="text-sm text-muted-foreground">Principal, St.G.D.Convent School</p>
                 </div>
               </div>
             </div>
