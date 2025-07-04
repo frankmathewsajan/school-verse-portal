@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -95,7 +96,7 @@ const Admin = () => {
         </Card>
         <div className="mt-4 text-sm text-muted-foreground text-center flex items-center gap-1">
           <LockIcon size={14} />
-          <span>Secure admin portal for SchoolVerse Academy</span>
+          <span>Secure admin portal for St. G. D. Convent School</span>
         </div>
       </div>
     </div>
