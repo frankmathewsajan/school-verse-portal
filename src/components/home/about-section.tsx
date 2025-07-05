@@ -7,7 +7,6 @@ import { ContentService } from '@/services/contentService';
 import type { Database } from '@/integrations/supabase/types';
 
 type AboutSection = Database['public']['Tables']['about_section']['Row'];
-type LeadershipMember = Database['public']['Tables']['leadership_team']['Row'];
 
 export function AboutSection() {
   const [aboutData, setAboutData] = useState<AboutSection>({
@@ -47,21 +46,12 @@ export function AboutSection() {
     updated_at: new Date().toISOString()
   });
 
-  const [staffMembers, setStaffMembers] = useState<LeadershipMember[]>([]);
-
   useEffect(() => {
     const loadData = async () => {
-      const [aboutSection, leadership] = await Promise.all([
-        ContentService.getAboutSection(),
-        ContentService.getLeadershipTeam()
-      ]);
+      const aboutSection = await ContentService.getAboutSection();
       
       if (aboutSection) {
         setAboutData(aboutSection);
-      }
-      
-      if (leadership && leadership.length > 0) {
-        setStaffMembers(leadership);
       }
     };
     loadData();
@@ -159,37 +149,6 @@ export function AboutSection() {
             </Card>
           ))}
         </div>
-        
-        {staffMembers.length > 0 && (
-          <div className="mt-16">
-            <SectionTitle 
-              title="Our Leadership Team" 
-              subtitle="Meet the dedicated educators guiding our school"
-              centered
-            />
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
-              {staffMembers.map((staff) => (
-                <Card key={staff.id} className="card-hover">
-                  <CardContent className="p-6">
-                    <div className="h-20 w-20 rounded-full overflow-hidden mx-auto mb-4">
-                      <img 
-                        src={staff.image_url || `https://randomuser.me/api/portraits/men/${Math.floor(Math.random() * 100)}.jpg`} 
-                        alt={staff.name}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <div className="text-center">
-                      <h3 className="text-lg font-semibold">{staff.name}</h3>
-                      <p className="text-primary font-medium text-sm mb-2">{staff.position}</p>
-                      <p className="text-sm text-muted-foreground">{staff.bio}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </section>
   );
