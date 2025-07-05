@@ -1,37 +1,26 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { SectionTitle } from '@/components/ui/section-title';
 import { Link } from 'react-router-dom';
+import { ContentService } from '@/services/contentService';
+import type { Database } from '@/integrations/supabase/types';
 
-// Dummy notification data (would come from API/database)
-const notifications = [
-  {
-    id: 1,
-    title: "Annual Sports Day",
-    date: "2025-05-12",
-    content: "The annual sports day will be held on May, 2025. All students are requested to register for their events by April 30.",
-    category: "event",
-  },
-  {
-    id: 2,
-    title: "Exam Schedule Released",
-    date: "2025-04-15",
-    content: "The final examination schedule for all grades has been released. Please check the academic calendar for details.",
-    category: "academic",
-  },
-  {
-    id: 3,
-    title: "Parent-Teacher Meeting",
-    date: "2025-04-20",
-    content: "Parent-teacher meetings will be conducted on April 20-21. Online booking for appointment slots is now open.",
-    category: "meeting",
-  }
-];
+type Announcement = Database['public']['Tables']['announcements']['Row'];
 
 export function NotificationSection() {
+  const [notifications, setNotifications] = useState<Announcement[]>([]);
+
+  useEffect(() => {
+    const loadNotifications = async () => {
+      const data = await ContentService.getAnnouncements();
+      setNotifications(data.slice(0, 3)); // Show only the latest 3 announcements
+    };
+    loadNotifications();
+  }, []);
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
@@ -57,11 +46,11 @@ export function NotificationSection() {
                 <div className="flex justify-between items-start">
                   <CardTitle className="text-xl">{notification.title}</CardTitle>
                   <span className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">
-                    {notification.category}
+                    {notification.category || 'announcement'}
                   </span>
                 </div>
                 <CardDescription>
-                  {formatDate(notification.date)}
+                  {formatDate(notification.created_at || new Date().toISOString())}
                 </CardDescription>
               </CardHeader>
               <CardContent>

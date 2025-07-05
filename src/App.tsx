@@ -14,6 +14,9 @@ import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
+// Test Components
+import { ContentIntegrationTest } from "./tests/ContentIntegrationTest";
+
 const queryClient = new QueryClient();
 
 const App = () => {
@@ -29,6 +32,7 @@ const App = () => {
               <Route path="/admin" element={<Admin />} />
               <Route path="/admin/login" element={<AdminLogin />} />
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
+              <Route path="/test/integration" element={<ContentIntegrationTest />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
         </BrowserRouter>

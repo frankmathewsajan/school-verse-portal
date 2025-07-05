@@ -176,6 +176,138 @@ export type Database = {
         }
         Relationships: []
       }
+      hero_section: {
+        Row: {
+          id: string
+          title: string
+          subtitle: string
+          description: string | null
+          image_url: string | null
+          image_description: string | null
+          primary_button_text: string | null
+          primary_button_link: string | null
+          secondary_button_text: string | null
+          secondary_button_link: string | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          title: string
+          subtitle: string
+          description?: string | null
+          image_url?: string | null
+          image_description?: string | null
+          primary_button_text?: string | null
+          primary_button_link?: string | null
+          secondary_button_text?: string | null
+          secondary_button_link?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          title?: string
+          subtitle?: string
+          description?: string | null
+          image_url?: string | null
+          image_description?: string | null
+          primary_button_text?: string | null
+          primary_button_link?: string | null
+          secondary_button_text?: string | null
+          secondary_button_link?: string | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      about_section: {
+        Row: {
+          id: string
+          title: string
+          subtitle: string | null
+          main_content: Json | null
+          principal_message: string | null
+          principal_name: string | null
+          principal_title: string | null
+          principal_image_url: string | null
+          school_founded_year: number | null
+          school_description: string | null
+          features: Json | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          title: string
+          subtitle?: string | null
+          main_content?: Json | null
+          principal_message?: string | null
+          principal_name?: string | null
+          principal_title?: string | null
+          principal_image_url?: string | null
+          school_founded_year?: number | null
+          school_description?: string | null
+          features?: Json | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          title?: string
+          subtitle?: string | null
+          main_content?: Json | null
+          principal_message?: string | null
+          principal_name?: string | null
+          principal_title?: string | null
+          principal_image_url?: string | null
+          school_founded_year?: number | null
+          school_description?: string | null
+          features?: Json | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      vision_section: {
+        Row: {
+          id: string
+          title: string
+          subtitle: string | null
+          main_content: string | null
+          principal_message: string | null
+          principal_name: string | null
+          principal_title: string | null
+          features: Json | null
+          created_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          id?: string
+          title: string
+          subtitle?: string | null
+          main_content?: string | null
+          principal_message?: string | null
+          principal_name?: string | null
+          principal_title?: string | null
+          features?: Json | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          id?: string
+          title?: string
+          subtitle?: string | null
+          main_content?: string | null
+          principal_message?: string | null
+          principal_name?: string | null
+          principal_title?: string | null
+          features?: Json | null
+          created_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

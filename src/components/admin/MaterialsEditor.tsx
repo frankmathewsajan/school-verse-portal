@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,149 +6,136 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Save, Plus, Trash2, Edit } from 'lucide-react';
+import { Save, Plus, Trash2, Edit, Loader2, Download } from 'lucide-react';
+import { ContentService } from '@/services/contentService';
+import type { Database } from '@/integrations/supabase/types';
 
-interface Material {
-  id: number;
-  title: string;
-  description: string;
-  subject: string;
-  grade: string;
-  fileType: string;
-  fileSize: string;
-  downloadUrl: string;
-}
+type LearningMaterial = Database['public']['Tables']['learning_materials']['Row'];
 
 export function MaterialsEditor() {
   const { toast } = useToast();
-  const [materials, setMaterials] = useState<Material[]>([
-    {
-      id: 1,
-      title: "Primary Mathematics Handbook",
-      description: "Essential mathematics concepts for primary school students with practice exercises.",
-      fileType: "PDF",
-      fileSize: "1.8 MB",
-      subject: "Mathematics",
-      grade: "1-5",
-      downloadUrl: "#",
-    },
-    {
-      id: 2,
-      title: "Middle School Science Experiments",
-      description: "Practical science experiments and activities for middle school students.",
-      fileType: "PDF",
-      fileSize: "3.2 MB",
-      subject: "Science",
-      grade: "6-8",
-      downloadUrl: "#",
-    },
-    {
-      id: 3,
-      title: "Secondary English Literature Guide",
-      description: "Comprehensive analysis of literary works for secondary students.",
-      fileType: "PDF",
-      fileSize: "2.7 MB",
-      subject: "English",
-      grade: "9-10",
-      downloadUrl: "#",
-    },
-    {
-      id: 4,
-      title: "Senior Physics - Advanced Concepts",
-      description: "Detailed physics materials for senior secondary covering mechanics, thermodynamics, and electromagnetism.",
-      fileType: "PDF",
-      fileSize: "4.5 MB",
-      subject: "Physics",
-      grade: "11-12",
-      downloadUrl: "#",
-    }
-  ]);
-
-  const [editingMaterial, setEditingMaterial] = useState<Material | null>(null);
-  const [newMaterial, setNewMaterial] = useState<Omit<Material, 'id'>>({
+  const [loading, setLoading] = useState(false);
+  const [materials, setMaterials] = useState<LearningMaterial[]>([]);
+  const [newMaterial, setNewMaterial] = useState<Partial<LearningMaterial>>({
     title: '',
     description: '',
     subject: '',
-    grade: '',
-    fileType: 'PDF',
-    fileSize: '',
-    downloadUrl: ''
+    class_level: '',
+    file_type: '',
+    file_size: '',
+    file_url: ''
   });
 
-  const subjects = ['Mathematics', 'Science', 'English', 'Physics', 'Chemistry', 'Biology', 'History', 'Geography', 'Computer Science', 'Art', 'Music', 'Physical Education'];
-  const grades = ['1-5', '6-8', '9-10', '11-12', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
-  const fileTypes = ['PDF', 'DOC', 'DOCX', 'PPT', 'PPTX', 'XLS', 'XLSX'];
+  useEffect(() => {
+    loadMaterials();
+  }, []);
 
-  const handleSave = () => {
-    toast({
-      title: "Materials updated",
-      description: "Changes will be reflected on the materials page",
-    });
+  const loadMaterials = async () => {
+    setLoading(true);
+    const items = await ContentService.getLearningMaterials();
+    setMaterials(items);
+    setLoading(false);
   };
 
-  const addMaterial = () => {
-    if (newMaterial.title && newMaterial.subject && newMaterial.grade) {
-      const id = Math.max(...materials.map(item => item.id)) + 1;
-      setMaterials([...materials, { ...newMaterial, id }]);
+  const handleAddMaterial = async () => {
+    if (!newMaterial.title || !newMaterial.description || !newMaterial.subject || !newMaterial.class_level) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+    const materialToCreate = {
+      title: newMaterial.title,
+      description: newMaterial.description,
+      subject: newMaterial.subject,
+      class_level: newMaterial.class_level,
+      file_type: newMaterial.file_type || 'PDF',
+      file_size: newMaterial.file_size || '0 MB',
+      file_url: newMaterial.file_url || '#'
+    };
+    
+    const success = await ContentService.createLearningMaterial(materialToCreate);
+    
+    if (success) {
+      toast({
+        title: "Learning material added",
+        description: "New material has been added to the collection",
+      });
       setNewMaterial({
         title: '',
         description: '',
         subject: '',
-        grade: '',
-        fileType: 'PDF',
-        fileSize: '',
-        downloadUrl: ''
+        class_level: '',
+        file_type: '',
+        file_size: '',
+        file_url: ''
       });
+      loadMaterials();
+    } else {
       toast({
-        title: "Material added",
-        description: "New material has been added to the collection",
+        title: "Error adding material",
+        description: "Please try again later",
+        variant: "destructive",
       });
     }
+    setLoading(false);
   };
 
-  const removeMaterial = (id: number) => {
-    setMaterials(materials.filter(item => item.id !== id));
-    toast({
-      title: "Material removed",
-      description: "Material has been removed from the collection",
-    });
+  const handleDeleteMaterial = async (id: string) => {
+    setLoading(true);
+    const success = await ContentService.deleteLearningMaterial(id);
+    
+    if (success) {
+      toast({
+        title: "Learning material deleted",
+        description: "Material has been removed from the collection",
+      });
+      loadMaterials();
+    } else {
+      toast({
+        title: "Error deleting material",
+        description: "Please try again later",
+        variant: "destructive",
+      });
+    }
+    setLoading(false);
   };
 
-  const updateMaterial = (updatedMaterial: Material) => {
-    setMaterials(materials.map(item => 
-      item.id === updatedMaterial.id ? updatedMaterial : item
-    ));
-    setEditingMaterial(null);
-    toast({
-      title: "Material updated",
-      description: "Material has been updated successfully",
-    });
-  };
+  const subjects = ['Mathematics', 'Science', 'English', 'History', 'Geography', 'Physics', 'Chemistry', 'Biology', 'Computer Science', 'Other'];
+  const grades = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '1-5', '6-8', '9-10', '11-12'];
+  const fileTypes = ['PDF', 'DOC', 'DOCX', 'PPT', 'PPTX', 'XLS', 'XLSX', 'ZIP', 'Other'];
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Add New Learning Material</CardTitle>
-          <CardDescription>Add new educational materials for students</CardDescription>
+          <CardTitle>Learning Materials Management</CardTitle>
+          <CardDescription>
+            Add, edit, and manage learning materials for students
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="new-title">Title</Label>
+              <Label htmlFor="title">Material Title</Label>
               <Input
-                id="new-title"
-                value={newMaterial.title}
+                id="title"
+                value={newMaterial.title || ''}
                 onChange={(e) => setNewMaterial({ ...newMaterial, title: e.target.value })}
                 placeholder="Enter material title"
-                className="mt-1"
               />
             </div>
-            
             <div>
-              <Label htmlFor="new-subject">Subject</Label>
-              <Select value={newMaterial.subject} onValueChange={(value) => setNewMaterial({ ...newMaterial, subject: value })}>
-                <SelectTrigger className="mt-1">
+              <Label htmlFor="subject">Subject</Label>
+              <Select 
+                value={newMaterial.subject || ''} 
+                onValueChange={(value) => setNewMaterial({ ...newMaterial, subject: value })}
+              >
+                <SelectTrigger>
                   <SelectValue placeholder="Select subject" />
                 </SelectTrigger>
                 <SelectContent>
@@ -162,24 +148,26 @@ export function MaterialsEditor() {
               </Select>
             </div>
           </div>
-
+          
           <div>
-            <Label htmlFor="new-description">Description</Label>
+            <Label htmlFor="description">Description</Label>
             <Textarea
-              id="new-description"
-              value={newMaterial.description}
+              id="description"
+              value={newMaterial.description || ''}
               onChange={(e) => setNewMaterial({ ...newMaterial, description: e.target.value })}
-              placeholder="Enter material description"
-              className="mt-1"
+              placeholder="Brief description of the material"
               rows={3}
             />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="new-grade">Grade Level</Label>
-              <Select value={newMaterial.grade} onValueChange={(value) => setNewMaterial({ ...newMaterial, grade: value })}>
-                <SelectTrigger className="mt-1">
+              <Label htmlFor="class-level">Class Level</Label>
+              <Select 
+                value={newMaterial.class_level || ''} 
+                onValueChange={(value) => setNewMaterial({ ...newMaterial, class_level: value })}
+              >
+                <SelectTrigger>
                   <SelectValue placeholder="Select grade" />
                 </SelectTrigger>
                 <SelectContent>
@@ -191,12 +179,14 @@ export function MaterialsEditor() {
                 </SelectContent>
               </Select>
             </div>
-            
             <div>
-              <Label htmlFor="new-type">File Type</Label>
-              <Select value={newMaterial.fileType} onValueChange={(value) => setNewMaterial({ ...newMaterial, fileType: value })}>
-                <SelectTrigger className="mt-1">
-                  <SelectValue />
+              <Label htmlFor="file-type">File Type</Label>
+              <Select 
+                value={newMaterial.file_type || ''} 
+                onValueChange={(value) => setNewMaterial({ ...newMaterial, file_type: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select file type" />
                 </SelectTrigger>
                 <SelectContent>
                   {fileTypes.map((type) => (
@@ -207,33 +197,39 @@ export function MaterialsEditor() {
                 </SelectContent>
               </Select>
             </div>
-            
             <div>
-              <Label htmlFor="new-size">File Size</Label>
+              <Label htmlFor="file-size">File Size</Label>
               <Input
-                id="new-size"
-                value={newMaterial.fileSize}
-                onChange={(e) => setNewMaterial({ ...newMaterial, fileSize: e.target.value })}
+                id="file-size"
+                value={newMaterial.file_size || ''}
+                onChange={(e) => setNewMaterial({ ...newMaterial, file_size: e.target.value })}
                 placeholder="e.g., 2.5 MB"
-                className="mt-1"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="new-url">Download URL</Label>
-              <Input
-                id="new-url"
-                value={newMaterial.downloadUrl}
-                onChange={(e) => setNewMaterial({ ...newMaterial, downloadUrl: e.target.value })}
-                placeholder="Enter file URL"
-                className="mt-1"
               />
             </div>
           </div>
-          
-          <Button onClick={addMaterial} className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Add Material
+
+          <div>
+            <Label htmlFor="file-url">File URL</Label>
+            <Input
+              id="file-url"
+              value={newMaterial.file_url || ''}
+              onChange={(e) => setNewMaterial({ ...newMaterial, file_url: e.target.value })}
+              placeholder="https://example.com/file.pdf"
+            />
+          </div>
+
+          <Button onClick={handleAddMaterial} disabled={loading}>
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Adding...
+              </>
+            ) : (
+              <>
+                <Plus className="w-4 h-4 mr-2" />
+                Add Material
+              </>
+            )}
           </Button>
         </CardContent>
       </Card>
@@ -241,156 +237,66 @@ export function MaterialsEditor() {
       <Card>
         <CardHeader>
           <CardTitle>Current Learning Materials</CardTitle>
-          <CardDescription>Manage existing educational materials</CardDescription>
+          <CardDescription>
+            Manage existing learning materials
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {materials.map((material) => (
-              <div key={material.id} className="border rounded-lg p-4">
-                {editingMaterial?.id === material.id ? (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div>
-                        <Label>Title</Label>
-                        <Input
-                          value={editingMaterial.title}
-                          onChange={(e) => setEditingMaterial({ ...editingMaterial, title: e.target.value })}
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label>Subject</Label>
-                        <Select 
-                          value={editingMaterial.subject} 
-                          onValueChange={(value) => setEditingMaterial({ ...editingMaterial, subject: value })}
-                        >
-                          <SelectTrigger className="mt-1">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {subjects.map((subject) => (
-                              <SelectItem key={subject} value={subject}>
-                                {subject}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <Label>Description</Label>
-                      <Textarea
-                        value={editingMaterial.description}
-                        onChange={(e) => setEditingMaterial({ ...editingMaterial, description: e.target.value })}
-                        className="mt-1"
-                        rows={3}
-                      />
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                      <div>
-                        <Label>Grade</Label>
-                        <Select 
-                          value={editingMaterial.grade} 
-                          onValueChange={(value) => setEditingMaterial({ ...editingMaterial, grade: value })}
-                        >
-                          <SelectTrigger className="mt-1">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {grades.map((grade) => (
-                              <SelectItem key={grade} value={grade}>
-                                Grade {grade}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label>File Type</Label>
-                        <Select 
-                          value={editingMaterial.fileType} 
-                          onValueChange={(value) => setEditingMaterial({ ...editingMaterial, fileType: value })}
-                        >
-                          <SelectTrigger className="mt-1">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {fileTypes.map((type) => (
-                              <SelectItem key={type} value={type}>
-                                {type}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div>
-                        <Label>File Size</Label>
-                        <Input
-                          value={editingMaterial.fileSize}
-                          onChange={(e) => setEditingMaterial({ ...editingMaterial, fileSize: e.target.value })}
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label>Download URL</Label>
-                        <Input
-                          value={editingMaterial.downloadUrl}
-                          onChange={(e) => setEditingMaterial({ ...editingMaterial, downloadUrl: e.target.value })}
-                          className="mt-1"
-                        />
-                      </div>
-                    </div>
-                    
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin mr-2" />
+              Loading materials...
+            </div>
+          ) : materials.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">
+              No learning materials found. Add some materials to get started!
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {materials.map((material) => (
+                <Card key={material.id} className="h-full">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-lg">{material.title}</CardTitle>
                     <div className="flex gap-2">
-                      <Button size="sm" onClick={() => updateMaterial(editingMaterial)}>
-                        Save Changes
+                      <span className="px-2 py-1 bg-primary/10 text-primary text-xs rounded">
+                        {material.subject}
+                      </span>
+                      <span className="px-2 py-1 bg-secondary/10 text-secondary-foreground text-xs rounded">
+                        Grade {material.class_level}
+                      </span>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-2">
+                    <p className="text-sm text-muted-foreground mb-3">{material.description}</p>
+                    <div className="flex justify-between items-center text-sm text-muted-foreground mb-3">
+                      <span>{material.file_type}</span>
+                      <span>{material.file_size}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(material.file_url, '_blank')}
+                      >
+                        <Download className="w-4 h-4 mr-1" />
+                        Download
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => setEditingMaterial(null)}>
-                        Cancel
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteMaterial(material.id)}
+                        disabled={loading}
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
-                  </div>
-                ) : (
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg">{material.title}</h3>
-                      <p className="text-muted-foreground mt-1">{material.description}</p>
-                      <div className="flex gap-4 mt-2 text-sm">
-                        <span className="bg-primary/10 text-primary px-2 py-1 rounded">
-                          {material.subject}
-                        </span>
-                        <span className="bg-secondary/10 text-secondary px-2 py-1 rounded">
-                          Grade {material.grade}
-                        </span>
-                        <span className="bg-accent/10 text-accent-foreground px-2 py-1 rounded">
-                          {material.fileType} • {material.fileSize}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex gap-2 ml-4">
-                      <Button size="sm" variant="outline" onClick={() => setEditingMaterial(material)}>
-                        <Edit className="h-3 w-3" />
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => removeMaterial(material.id)}>
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
-
-      <div className="flex justify-end">
-        <Button onClick={handleSave} className="flex items-center gap-2">
-          <Save className="h-4 w-4" />
-          Save All Changes
-        </Button>
-      </div>
     </div>
   );
 }

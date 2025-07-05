@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,15 +11,25 @@ import {
   ImageIcon, 
   BookOpenIcon,
   SettingsIcon,
-  ShieldCheckIcon
+  ShieldCheckIcon,
+  HomeIcon,
+  InfoIcon
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+
+// Import the new admin components
+import { HeroEditor } from '@/components/admin/HeroEditor';
+import { AboutEditor } from '@/components/admin/AboutEditor';
+import { NotificationEditor } from '@/components/admin/NotificationEditor';
+import { GalleryEditor } from '@/components/admin/GalleryEditor';
+import { MaterialsEditor } from '@/components/admin/MaterialsEditor';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { isAuthenticated, loading: authLoading, user, signOut } = useAuth();
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState('hero');
 
   // Protect the route
   useEffect(() => {
@@ -37,6 +47,10 @@ const AdminDashboard = () => {
       });
       navigate("/admin/login");
     }
+  };
+
+  const handlePreview = () => {
+    window.open('/', '_blank');
   };
 
   if (authLoading) {
@@ -71,6 +85,10 @@ const AdminDashboard = () => {
                 Admin
               </Badge>
             </div>
+            <Button variant="outline" size="sm" onClick={handlePreview}>
+              <HomeIcon className="w-4 h-4 mr-2" />
+              Preview Site
+            </Button>
             <Button variant="outline" size="sm" onClick={handleSignOut}>
               <LogOutIcon className="w-4 h-4 mr-2" />
               Sign Out
@@ -134,8 +152,16 @@ const AdminDashboard = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs defaultValue="announcements" className="w-full">
-              <TabsList className="grid w-full grid-cols-5">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-6">
+                <TabsTrigger value="hero">
+                  <HomeIcon className="w-4 h-4 mr-2" />
+                  Hero
+                </TabsTrigger>
+                <TabsTrigger value="about">
+                  <InfoIcon className="w-4 h-4 mr-2" />
+                  About
+                </TabsTrigger>
                 <TabsTrigger value="announcements">
                   <FileTextIcon className="w-4 h-4 mr-2" />
                   Announcements
@@ -148,82 +174,30 @@ const AdminDashboard = () => {
                   <BookOpenIcon className="w-4 h-4 mr-2" />
                   Materials
                 </TabsTrigger>
-                <TabsTrigger value="leadership">
-                  <UsersIcon className="w-4 h-4 mr-2" />
-                  Leadership
-                </TabsTrigger>
                 <TabsTrigger value="settings">
                   <SettingsIcon className="w-4 h-4 mr-2" />
                   Settings
                 </TabsTrigger>
               </TabsList>
               
+              <TabsContent value="hero" className="mt-6">
+                <HeroEditor />
+              </TabsContent>
+
+              <TabsContent value="about" className="mt-6">
+                <AboutEditor />
+              </TabsContent>
+              
               <TabsContent value="announcements" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Announcements Management</CardTitle>
-                    <CardDescription>
-                      Create, edit, and manage school announcements
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center py-8 text-muted-foreground">
-                      <FileTextIcon className="w-12 h-12 mx-auto mb-4" />
-                      <p>Announcements management coming soon...</p>
-                    </div>
-                  </CardContent>
-                </Card>
+                <NotificationEditor />
               </TabsContent>
               
               <TabsContent value="gallery" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Gallery Management</CardTitle>
-                    <CardDescription>
-                      Upload and manage school life photos
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center py-8 text-muted-foreground">
-                      <ImageIcon className="w-12 h-12 mx-auto mb-4" />
-                      <p>Gallery management coming soon...</p>
-                    </div>
-                  </CardContent>
-                </Card>
+                <GalleryEditor />
               </TabsContent>
               
               <TabsContent value="materials" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Learning Materials Management</CardTitle>
-                    <CardDescription>
-                      Upload and manage educational resources
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center py-8 text-muted-foreground">
-                      <BookOpenIcon className="w-12 h-12 mx-auto mb-4" />
-                      <p>Learning materials management coming soon...</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="leadership" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Leadership Team Management</CardTitle>
-                    <CardDescription>
-                      Manage staff profiles and information
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-center py-8 text-muted-foreground">
-                      <UsersIcon className="w-12 h-12 mx-auto mb-4" />
-                      <p>Leadership management coming soon...</p>
-                    </div>
-                  </CardContent>
-                </Card>
+                <MaterialsEditor />
               </TabsContent>
               
               <TabsContent value="settings" className="mt-6">
@@ -248,7 +222,7 @@ const AdminDashboard = () => {
                           <h4 className="text-sm font-semibold">Database</h4>
                           <div className="text-sm text-muted-foreground">
                             <p>Connected to Supabase</p>
-                            <p>Project: sfffnjjozmkmugdchhaq</p>
+                            <p>Project: plgjavfrwcphrehmthdv</p>
                           </div>
                         </div>
                       </div>

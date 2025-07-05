@@ -1,30 +1,77 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { SectionTitle } from '@/components/ui/section-title';
 import { BookOpen, Award, Users, Star } from 'lucide-react';
+import { ContentService } from '@/services/contentService';
+import type { Database } from '@/integrations/supabase/types';
+
+type VisionSection = Database['public']['Tables']['vision_section']['Row'];
 
 export function VisionSection() {
-  const features = [
+  const [visionData, setVisionData] = useState<VisionSection>({
+    id: 'main',
+    title: 'Our Vision & Mission',
+    subtitle: 'Fostering a learning environment that nurtures excellence, character, and lifelong learning',
+    main_content: 'At SchoolVerse Academy, we believe in providing an education that goes beyond textbooks. Our vision is to create a nurturing environment where students can discover their potential, develop critical skills, and become responsible global citizens prepared for the challenges of tomorrow.',
+    principal_message: 'Education is not just about academic achievement, but about nurturing curious minds, compassionate hearts, and resilient spirits. At SchoolVerse, we are committed to guiding each student on their unique journey of growth and discovery.',
+    principal_name: 'Dr. Ashirwad Goel',
+    principal_title: 'Principal, St.G.D.Convent School',
+    features: [
+      {
+        title: "Academic Excellence",
+        description: "We maintain high academic standards through innovative teaching methods and comprehensive curriculum."
+      },
+      {
+        title: "Inclusive Community",
+        description: "Our diverse and supportive environment ensures every student feels valued and empowered to succeed."
+      },
+      {
+        title: "Holistic Development",
+        description: "We focus on developing well-rounded individuals through academic, social, and extracurricular activities."
+      },
+      {
+        title: "Future-Ready Skills",
+        description: "Our programs equip students with critical thinking, creativity, and technological skills for future success."
+      }
+    ],
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  });
+
+  useEffect(() => {
+    const loadVisionData = async () => {
+      const data = await ContentService.getVisionSection();
+      if (data) {
+        setVisionData(data);
+      }
+    };
+    loadVisionData();
+  }, []);
+
+  const features = Array.isArray(visionData.features) ? visionData.features : [
     {
-      icon: <BookOpen className="h-10 w-10 text-primary" />,
       title: "Academic Excellence",
       description: "We maintain high academic standards through innovative teaching methods and comprehensive curriculum."
     },
     {
-      icon: <Users className="h-10 w-10 text-primary" />,
       title: "Inclusive Community",
       description: "Our diverse and supportive environment ensures every student feels valued and empowered to succeed."
     },
     {
-      icon: <Award className="h-10 w-10 text-primary" />,
       title: "Holistic Development",
       description: "We focus on developing well-rounded individuals through academic, social, and extracurricular activities."
     },
     {
-      icon: <Star className="h-10 w-10 text-primary" />,
       title: "Future-Ready Skills",
       description: "Our programs equip students with critical thinking, creativity, and technological skills for future success."
     }
+  ];
+
+  const featureIcons = [
+    <BookOpen className="h-10 w-10 text-primary" />,
+    <Users className="h-10 w-10 text-primary" />,
+    <Award className="h-10 w-10 text-primary" />,
+    <Star className="h-10 w-10 text-primary" />
   ];
 
   return (
@@ -33,28 +80,24 @@ export function VisionSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
           <div>
             <SectionTitle 
-              title="Our Vision & Mission" 
-              subtitle="Fostering a learning environment that nurtures excellence, character, and lifelong learning"
+              title={visionData.title} 
+              subtitle={visionData.subtitle || undefined}
             />
             
             <p className="text-muted-foreground my-6">
-              At SchoolVerse Academy, we believe in providing an education that goes beyond textbooks. 
-              Our vision is to create a nurturing environment where students can discover their potential, 
-              develop critical skills, and become responsible global citizens prepared for the challenges of tomorrow.
+              {visionData.main_content}
             </p>
             
             <div className="bg-primary/5 border border-primary/10 rounded-lg p-6 mt-8">
               <h3 className="text-xl font-semibold mb-3">Principal's Message</h3>
               <blockquote className="text-muted-foreground italic">
-                "Education is not just about academic achievement, but about nurturing curious minds, 
-                compassionate hearts, and resilient spirits. At SchoolVerse, we are committed to 
-                guiding each student on their unique journey of growth and discovery."
+                "{visionData.principal_message}"
               </blockquote>
               <div className="mt-4 flex items-center">
                 <div className="w-12 h-12 rounded-full bg-primary/20 mr-3"></div>
                 <div>
-                  <p className="font-medium">Dr. Ashirwad Goel</p>
-                  <p className="text-sm text-muted-foreground">Principal, St.G.D.Convent School</p>
+                  <p className="font-medium">{visionData.principal_name}</p>
+                  <p className="text-sm text-muted-foreground">{visionData.principal_title}</p>
                 </div>
               </div>
             </div>
@@ -66,7 +109,7 @@ export function VisionSection() {
                 key={index} 
                 className="bg-card border rounded-lg p-6 card-hover"
               >
-                <div className="mb-4">{feature.icon}</div>
+                <div className="mb-4">{featureIcons[index] || featureIcons[0]}</div>
                 <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
                 <p className="text-muted-foreground text-sm">{feature.description}</p>
               </div>

@@ -1,57 +1,112 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { SectionTitle } from '@/components/ui/section-title';
 import { Card, CardContent } from '@/components/ui/card';
 import { Building, Users, BookOpen, GraduationCap } from 'lucide-react';
+import { ContentService } from '@/services/contentService';
+import type { Database } from '@/integrations/supabase/types';
+
+type AboutSection = Database['public']['Tables']['about_section']['Row'];
+type LeadershipMember = Database['public']['Tables']['leadership_team']['Row'];
 
 export function AboutSection() {
-  const staffMembers = [
-    {
-      id: 1,
-      name: "Mr. Ashirwad Goyal",
-      position: "Principal",
-      bio: "Mr. Ashirwad Goel has over 20 years of experience in education leadership and holds a Ph.D. in Educational Administration.",
-      imageUrl: "https://randomuser.me/api/portraits/women/45.jpg"
-    },
-    {
-      id: 2,
-      name: "Mr. Shiv Narayan Goyal",
-      position: "Director",
-      bio: "Mr. Shiv Narayan Goyal oversees academic affairs and curriculum development with his extensive background in educational psychology.",
-      imageUrl: "https://randomuser.me/api/portraits/men/32.jpg"
-    },
-    
-  ];
+  const [aboutData, setAboutData] = useState<AboutSection>({
+    id: 'main',
+    title: 'About Our School',
+    subtitle: 'Excellence in education through innovative teaching and comprehensive curriculum',
+    main_content: [
+      'St. G. D. Convent School is a leading educational institution committed to providing a balanced and stimulating learning environment where students can achieve academic excellence and personal growth.',
+      'Our comprehensive curriculum is designed to develop critical thinking, creativity, and problem-solving skills, preparing students for success in higher education and beyond.',
+      'We pride ourselves on small class sizes, dedicated teachers, and a supportive community that nurtures each student\'s individual talents and abilities.'
+    ],
+    principal_message: 'Education is not just about academic achievement, but about nurturing curious minds, compassionate hearts, and resilient spirits. At St. G. D. Convent School, we are committed to guiding each student on their unique journey of growth and discovery.',
+    principal_name: 'Mr. Ashirwad Goyal',
+    principal_title: 'Principal, St. G. D. Convent School',
+    principal_image_url: 'https://randomuser.me/api/portraits/women/45.jpg',
+    school_founded_year: 1985,
+    school_description: null,
+    features: [
+      {
+        title: "Founded in 1985",
+        description: "With decades of educational excellence and a strong foundation in values-based learning"
+      },
+      {
+        title: "Diverse Community",
+        description: "Creating an inclusive environment where every student feels valued and empowered"
+      },
+      {
+        title: "Comprehensive Curriculum",
+        description: "Balancing academic rigor with holistic development for well-rounded education"
+      },
+      {
+        title: "Academic Excellence",
+        description: "Consistent record of outstanding achievements in academics and extracurriculars"
+      }
+    ],
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  });
 
-  const features = [
+  const [staffMembers, setStaffMembers] = useState<LeadershipMember[]>([]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      const [aboutSection, leadership] = await Promise.all([
+        ContentService.getAboutSection(),
+        ContentService.getLeadershipTeam()
+      ]);
+      
+      if (aboutSection) {
+        setAboutData(aboutSection);
+      }
+      
+      if (leadership && leadership.length > 0) {
+        setStaffMembers(leadership);
+      }
+    };
+    loadData();
+  }, []);
+
+  const features = Array.isArray(aboutData.features) ? aboutData.features : [
     {
-      icon: <Building className="h-10 w-10 text-primary" />,
       title: "Founded in 1985",
       description: "With decades of educational excellence and a strong foundation in values-based learning"
     },
     {
-      icon: <Users className="h-10 w-10 text-primary" />,
       title: "Diverse Community",
       description: "Creating an inclusive environment where every student feels valued and empowered"
     },
     {
-      icon: <BookOpen className="h-10 w-10 text-primary" />,
       title: "Comprehensive Curriculum",
       description: "Balancing academic rigor with holistic development for well-rounded education"
     },
     {
-      icon: <GraduationCap className="h-10 w-10 text-primary" />,
       title: "Academic Excellence",
       description: "Consistent record of outstanding achievements in academics and extracurriculars"
     }
   ];
 
+  const featureIcons = [
+    <Building className="h-10 w-10 text-primary" />,
+    <Users className="h-10 w-10 text-primary" />,
+    <BookOpen className="h-10 w-10 text-primary" />,
+    <GraduationCap className="h-10 w-10 text-primary" />
+  ];
+
+  const mainContent = Array.isArray(aboutData.main_content) 
+    ? aboutData.main_content.map(item => typeof item === 'string' ? item : JSON.stringify(item))
+    : [
+        'St. G. D. Convent School is a leading educational institution committed to providing a balanced and stimulating learning environment where students can achieve academic excellence and personal growth.',
+        'Our comprehensive curriculum is designed to develop critical thinking, creativity, and problem-solving skills, preparing students for success in higher education and beyond.',
+        'We pride ourselves on small class sizes, dedicated teachers, and a supportive community that nurtures each student\'s individual talents and abilities.'
+      ];
+
   return (
     <section className="py-16 bg-light">
       <div className="container mx-auto px-4">
         <SectionTitle 
-          title="About Our School" 
-          subtitle="Excellence in education through innovative teaching and comprehensive curriculum"
+          title={aboutData.title} 
+          subtitle={aboutData.subtitle || undefined}
           centered
         />
         
@@ -66,39 +121,27 @@ export function AboutSection() {
           
           <div>
             <div className="space-y-4 text-muted-foreground">
-              <p>
-                St. G. D. Convent School is a leading educational institution committed to providing a 
-                balanced and stimulating learning environment where students can achieve academic 
-                excellence and personal growth.
-              </p>
-              <p>
-                Our comprehensive curriculum is designed to develop critical thinking, creativity, 
-                and problem-solving skills, preparing students for success in higher education and beyond.
-              </p>
-              <p>
-                We pride ourselves on small class sizes, dedicated teachers, and a supportive community 
-                that nurtures each student's individual talents and abilities.
-              </p>
+              {mainContent.map((paragraph, index) => (
+                <p key={index}>{paragraph}</p>
+              ))}
             </div>
             
             <div className="bg-primary/5 border border-primary/10 rounded-lg p-6 mt-8">
               <h3 className="text-xl font-semibold mb-3">Principal's Message</h3>
               <blockquote className="text-muted-foreground italic">
-                "Education is not just about academic achievement, but about nurturing curious minds, 
-                compassionate hearts, and resilient spirits. At St. G. D. Convent School, we are committed to 
-                guiding each student on their unique journey of growth and discovery."
+                "{aboutData.principal_message}"
               </blockquote>
               <div className="mt-4 flex items-center">
                 <div className="w-12 h-12 rounded-full overflow-hidden">
                   <img 
-                    src="https://randomuser.me/api/portraits/women/45.jpg" 
+                    src={aboutData.principal_image_url || "https://randomuser.me/api/portraits/women/45.jpg"} 
                     alt="Principal"
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="ml-3">
-                  <p className="font-medium">Mr. Ashirwad Goyal</p>
-                  <p className="text-sm text-muted-foreground">Principal, St. G. D. Convent School</p>
+                  <p className="font-medium">{aboutData.principal_name}</p>
+                  <p className="text-sm text-muted-foreground">{aboutData.principal_title}</p>
                 </div>
               </div>
             </div>
@@ -109,7 +152,7 @@ export function AboutSection() {
           {features.map((feature, index) => (
             <Card key={index} className="card-hover">
               <CardContent className="p-6">
-                <div className="mb-4">{feature.icon}</div>
+                <div className="mb-4">{featureIcons[index] || featureIcons[0]}</div>
                 <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
                 <p className="text-muted-foreground text-sm">{feature.description}</p>
               </CardContent>
@@ -117,34 +160,36 @@ export function AboutSection() {
           ))}
         </div>
         
-        <div className="mt-16">
-          <SectionTitle 
-            title="Our Leadership Team" 
-            subtitle="Meet the dedicated educators guiding our school"
-            centered
-          />
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
-            {staffMembers.map((staff) => (
-              <Card key={staff.id} className="card-hover">
-                <CardContent className="p-6">
-                  <div className="h-20 w-20 rounded-full overflow-hidden mx-auto mb-4">
-                    <img 
-                      src={staff.imageUrl} 
-                      alt={staff.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div className="text-center">
-                    <h3 className="text-lg font-semibold">{staff.name}</h3>
-                    <p className="text-primary font-medium text-sm mb-2">{staff.position}</p>
-                    <p className="text-sm text-muted-foreground">{staff.bio}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+        {staffMembers.length > 0 && (
+          <div className="mt-16">
+            <SectionTitle 
+              title="Our Leadership Team" 
+              subtitle="Meet the dedicated educators guiding our school"
+              centered
+            />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-8">
+              {staffMembers.map((staff) => (
+                <Card key={staff.id} className="card-hover">
+                  <CardContent className="p-6">
+                    <div className="h-20 w-20 rounded-full overflow-hidden mx-auto mb-4">
+                      <img 
+                        src={staff.image_url || `https://randomuser.me/api/portraits/men/${Math.floor(Math.random() * 100)}.jpg`} 
+                        alt={staff.name}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="text-center">
+                      <h3 className="text-lg font-semibold">{staff.name}</h3>
+                      <p className="text-primary font-medium text-sm mb-2">{staff.position}</p>
+                      <p className="text-sm text-muted-foreground">{staff.bio}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </section>
   );
