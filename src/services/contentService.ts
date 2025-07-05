@@ -9,6 +9,27 @@ type GalleryItem = Database['public']['Tables']['school_life_gallery']['Row'];
 type LearningMaterial = Database['public']['Tables']['learning_materials']['Row'];
 type LeadershipMember = Database['public']['Tables']['leadership_team']['Row'];
 
+// Footer Section interface (temporary - will be added to Database type later)
+export interface FooterSection {
+  id: string;
+  title: string;
+  section_type: 'links' | 'contact' | 'social' | 'custom';
+  content: Record<string, any>;
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Statistics interface
+export interface DashboardStatistics {
+  totalUsers: number;
+  totalAnnouncements: number;
+  totalGalleryItems: number;
+  totalLearningMaterials: number;
+  totalFooterSections: number;
+}
+
 export class ContentService {
   
   // Hero Section Methods
@@ -480,6 +501,263 @@ export class ContentService {
       return true;
     } catch (error) {
       console.error('Error in deleteLeadershipMember:', error);
+      return false;
+    }
+  }
+
+  // Statistics Methods
+  static async getDashboardStatistics(): Promise<DashboardStatistics> {
+    try {
+      // Get counts individually to avoid TypeScript issues
+      const [
+        totalAnnouncements,
+        galleryItems,
+        learningMaterials,
+        footerSections
+      ] = await Promise.all([
+        this.getActiveAnnouncementCount(),
+        this.getGalleryItemCount(),
+        this.getLearningMaterialCount(),
+        this.getFooterSectionCount()
+      ]);
+
+      return {
+        totalUsers: 1, // For now, set to 1 (the admin user)
+        totalAnnouncements,
+        totalGalleryItems: galleryItems,
+        totalLearningMaterials: learningMaterials,
+        totalFooterSections: footerSections
+      };
+    } catch (error) {
+      console.error('Error fetching dashboard statistics:', error);
+      return {
+        totalUsers: 0,
+        totalAnnouncements: 0,
+        totalGalleryItems: 0,
+        totalLearningMaterials: 0,
+        totalFooterSections: 0
+      };
+    }
+  }
+
+  static async getActiveAnnouncementCount(): Promise<number> {
+    try {
+      const { count } = await supabase
+        .from('announcements')
+        .select('id', { count: 'exact', head: true });
+      return count || 0;
+    } catch (error) {
+      console.error('Error getting announcement count:', error);
+      return 0;
+    }
+  }
+
+  static async getGalleryItemCount(): Promise<number> {
+    try {
+      const { count } = await supabase
+        .from('school_life_gallery')
+        .select('id', { count: 'exact', head: true });
+      return count || 0;
+    } catch (error) {
+      console.error('Error getting gallery item count:', error);
+      return 0;
+    }
+  }
+
+  static async getLearningMaterialCount(): Promise<number> {
+    try {
+      const { count } = await supabase
+        .from('learning_materials')
+        .select('id', { count: 'exact', head: true });
+      return count || 0;
+    } catch (error) {
+      console.error('Error getting learning material count:', error);
+      return 0;
+    }
+  }
+
+  static async getFooterSectionCount(): Promise<number> {
+    try {
+      // TODO: Uncomment when footer_sections table is created
+      // const { count } = await supabase
+      //   .from('footer_sections')
+      //   .select('id', { count: 'exact', head: true });
+      // return count || 0;
+      return 0; // Temporary - will return actual count once table is created
+    } catch (error) {
+      console.error('Error getting footer section count:', error);
+      return 0;
+    }
+  }
+
+  static async getLeadershipMemberCount(): Promise<number> {
+    try {
+      const { count } = await supabase
+        .from('leadership_team')
+        .select('id', { count: 'exact', head: true });
+      return count || 0;
+    } catch (error) {
+      console.error('Error getting leadership member count:', error);
+      return 0;
+    }
+  }
+
+  static async getAnnouncementStatistics(): Promise<{ total: number; active: number; inactive: number }> {
+    try {
+      const total = await this.getActiveAnnouncementCount();
+      const active = await this.getActiveAnnouncementCount();
+      const inactive = total - active;
+
+      return { total, active, inactive };
+    } catch (error) {
+      console.error('Error fetching announcement statistics:', error);
+      return { total: 0, active: 0, inactive: 0 };
+    }
+  }
+
+  // Footer Section Methods
+  static async getFooterSections(): Promise<FooterSection[]> {
+    try {
+      // TODO: Uncomment when footer_sections table is created
+      // const { data, error } = await supabase
+      //   .from('footer_sections')
+      //   .select('*')
+      //   .eq('is_active', true)
+      //   .order('display_order', { ascending: true });
+      
+      // if (error) {
+      //   console.error('Error fetching footer sections:', error);
+      //   return [];
+      // }
+      
+      // return data || [];
+      return []; // Temporary - will return actual data once table is created
+    } catch (error) {
+      console.error('Error fetching footer sections:', error);
+      return [];
+    }
+  }
+
+  static async getFooterSectionById(id: string): Promise<FooterSection | null> {
+    try {
+      // TODO: Uncomment when footer_sections table is created
+      // const { data, error } = await supabase
+      //   .from('footer_sections')
+      //   .select('*')
+      //   .eq('id', id)
+      //   .single();
+      
+      // if (error) {
+      //   console.error('Error fetching footer section:', error);
+      //   return null;
+      // }
+      
+      // return data;
+      return null; // Temporary - will return actual data once table is created
+    } catch (error) {
+      console.error('Error fetching footer section:', error);
+      return null;
+    }
+  }
+
+  static async createFooterSection(section: Omit<FooterSection, 'id' | 'created_at' | 'updated_at'>): Promise<FooterSection | null> {
+    try {
+      // TODO: Uncomment when footer_sections table is created
+      // const { data, error } = await supabase
+      //   .from('footer_sections')
+      //   .insert([section])
+      //   .select()
+      //   .single();
+      
+      // if (error) {
+      //   console.error('Error creating footer section:', error);
+      //   return null;
+      // }
+      
+      // return data;
+      return null; // Temporary - will return actual data once table is created
+    } catch (error) {
+      console.error('Error creating footer section:', error);
+      return null;
+    }
+  }
+
+  static async updateFooterSection(id: string, updates: Partial<Omit<FooterSection, 'id' | 'created_at' | 'updated_at'>>): Promise<FooterSection | null> {
+    try {
+      // TODO: Uncomment when footer_sections table is created
+      // const { data, error } = await supabase
+      //   .from('footer_sections')
+      //   .update(updates)
+      //   .eq('id', id)
+      //   .select()
+      //   .single();
+      
+      // if (error) {
+      //   console.error('Error updating footer section:', error);
+      //   return null;
+      // }
+      
+      // return data;
+      return null; // Temporary - will return actual data once table is created
+    } catch (error) {
+      console.error('Error updating footer section:', error);
+      return null;
+    }
+  }
+
+  static async deleteFooterSection(id: string): Promise<boolean> {
+    try {
+      // TODO: Uncomment when footer_sections table is created
+      // const { error } = await supabase
+      //   .from('footer_sections')
+      //   .delete()
+      //   .eq('id', id);
+      
+      // if (error) {
+      //   console.error('Error deleting footer section:', error);
+      //   return false;
+      // }
+      
+      // return true;
+      return false; // Temporary - will return actual result once table is created
+    } catch (error) {
+      console.error('Error deleting footer section:', error);
+      return false;
+    }
+  }
+
+  static async toggleFooterSectionStatus(id: string): Promise<FooterSection | null> {
+    try {
+      // TODO: Uncomment when footer_sections table is created
+      // First get the current status
+      // const current = await this.getFooterSectionById(id);
+      // if (!current) return null;
+      
+      // Toggle the status
+      // return await this.updateFooterSection(id, { is_active: !current.is_active });
+      return null; // Temporary - will return actual data once table is created
+    } catch (error) {
+      console.error('Error toggling footer section status:', error);
+      return null;
+    }
+  }
+
+  static async reorderFooterSections(sectionIds: string[]): Promise<boolean> {
+    try {
+      // TODO: Uncomment when footer_sections table is created
+      // const updates = sectionIds.map((id, index) => ({
+      //   id,
+      //   display_order: index + 1
+      // }));
+      
+      // for (const update of updates) {
+      //   await this.updateFooterSection(update.id, { display_order: update.display_order });
+      // }
+      
+      // return true;
+      return false; // Temporary - will return actual result once table is created
+    } catch (error) {
+      console.error('Error reordering footer sections:', error);
       return false;
     }
   }

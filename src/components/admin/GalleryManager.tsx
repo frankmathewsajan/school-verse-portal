@@ -5,7 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { PlusIcon, UploadIcon, ImageIcon } from 'lucide-react';
 
-const GalleryManager = () => {
+interface GalleryManagerProps {
+  onContentUpdate?: () => void;
+}
+
+const GalleryManager = ({ onContentUpdate }: GalleryManagerProps) => {
   return (
     <div className="space-y-6">
       {/* Upload New Photo */}

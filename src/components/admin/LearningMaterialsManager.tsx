@@ -6,7 +6,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PlusIcon, UploadIcon, BookOpenIcon } from 'lucide-react';
 
-const LearningMaterialsManager = () => {
+interface LearningMaterialsManagerProps {
+  onContentUpdate?: () => void;
+}
+
+const LearningMaterialsManager = ({ onContentUpdate }: LearningMaterialsManagerProps) => {
   return (
     <div className="space-y-6">
       {/* Upload New Material */}

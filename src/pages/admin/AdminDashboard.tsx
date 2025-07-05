@@ -13,10 +13,12 @@ import {
   SettingsIcon,
   ShieldCheckIcon,
   HomeIcon,
-  InfoIcon
+  InfoIcon,
+  RefreshCwIcon
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { ContentService, DashboardStatistics } from '@/services/contentService';
 
 // Import the new admin components
 import { HeroEditor } from '@/components/admin/HeroEditor';
@@ -24,12 +26,21 @@ import { AboutEditor } from '@/components/admin/AboutEditor';
 import { NotificationEditor } from '@/components/admin/NotificationEditor';
 import { GalleryEditor } from '@/components/admin/GalleryEditor';
 import { MaterialsEditor } from '@/components/admin/MaterialsEditor';
+import FooterEditor from '@/components/admin/FooterEditor';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { isAuthenticated, loading: authLoading, user, signOut } = useAuth();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('hero');
+  const [statistics, setStatistics] = useState<DashboardStatistics>({
+    totalUsers: 0,
+    totalAnnouncements: 0,
+    totalGalleryItems: 0,
+    totalLearningMaterials: 0,
+    totalFooterSections: 0
+  });
+  const [loadingStats, setLoadingStats] = useState(true);
 
   // Protect the route
   useEffect(() => {
@@ -37,6 +48,38 @@ const AdminDashboard = () => {
       navigate("/admin/login");
     }
   }, [isAuthenticated, authLoading, navigate]);
+
+  // Load statistics
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadStatistics();
+    }
+  }, [isAuthenticated]);
+
+  const loadStatistics = async () => {
+    try {
+      setLoadingStats(true);
+      const stats = await ContentService.getDashboardStatistics();
+      setStatistics(stats);
+    } catch (error) {
+      console.error('Error loading statistics:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load dashboard statistics",
+        variant: "destructive"
+      });
+    } finally {
+      setLoadingStats(false);
+    }
+  };
+
+  const refreshStatistics = async () => {
+    await loadStatistics();
+    toast({
+      title: "Refreshed",
+      description: "Dashboard statistics have been updated",
+    });
+  };
 
   const handleSignOut = async () => {
     const result = await signOut();
@@ -47,10 +90,6 @@ const AdminDashboard = () => {
       });
       navigate("/admin/login");
     }
-  };
-
-  const handlePreview = () => {
-    window.open('/', '_blank');
   };
 
   if (authLoading) {
@@ -85,7 +124,16 @@ const AdminDashboard = () => {
                 Admin
               </Badge>
             </div>
-            <Button variant="outline" size="sm" onClick={handlePreview}>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={refreshStatistics}
+              disabled={loadingStats}
+            >
+              <RefreshCwIcon className={`w-4 h-4 mr-2 ${loadingStats ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => window.open('/', '_blank')}>
               <HomeIcon className="w-4 h-4 mr-2" />
               Preview Site
             </Button>
@@ -104,7 +152,13 @@ const AdminDashboard = () => {
               <UsersIcon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">
+                {loadingStats ? (
+                  <div className="animate-pulse bg-gray-200 h-8 w-8 rounded"></div>
+                ) : (
+                  statistics.totalUsers
+                )}
+              </div>
               <p className="text-xs text-muted-foreground">Registered users</p>
             </CardContent>
           </Card>
@@ -115,8 +169,16 @@ const AdminDashboard = () => {
               <FileTextIcon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
-              <p className="text-xs text-muted-foreground">Active announcements</p>
+              <div className="text-2xl font-bold">
+                {loadingStats ? (
+                  <div className="animate-pulse bg-gray-200 h-8 w-8 rounded"></div>
+                ) : (
+                  statistics.totalAnnouncements
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Total announcements
+              </p>
             </CardContent>
           </Card>
           
@@ -126,7 +188,13 @@ const AdminDashboard = () => {
               <ImageIcon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">
+                {loadingStats ? (
+                  <div className="animate-pulse bg-gray-200 h-8 w-8 rounded"></div>
+                ) : (
+                  statistics.totalGalleryItems
+                )}
+              </div>
               <p className="text-xs text-muted-foreground">Photos in gallery</p>
             </CardContent>
           </Card>
@@ -137,8 +205,31 @@ const AdminDashboard = () => {
               <BookOpenIcon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">0</div>
+              <div className="text-2xl font-bold">
+                {loadingStats ? (
+                  <div className="animate-pulse bg-gray-200 h-8 w-8 rounded"></div>
+                ) : (
+                  statistics.totalLearningMaterials
+                )}
+              </div>
               <p className="text-xs text-muted-foreground">Available resources</p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Footer Sections</CardTitle>
+              <SettingsIcon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {loadingStats ? (
+                  <div className="animate-pulse bg-gray-200 h-8 w-8 rounded"></div>
+                ) : (
+                  statistics.totalFooterSections
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">Footer sections</p>
             </CardContent>
           </Card>
         </div>
@@ -174,9 +265,9 @@ const AdminDashboard = () => {
                   <BookOpenIcon className="w-4 h-4 mr-2" />
                   Materials
                 </TabsTrigger>
-                <TabsTrigger value="settings">
+                <TabsTrigger value="footer">
                   <SettingsIcon className="w-4 h-4 mr-2" />
-                  Settings
+                  Footer
                 </TabsTrigger>
               </TabsList>
               
@@ -200,35 +291,8 @@ const AdminDashboard = () => {
                 <MaterialsEditor />
               </TabsContent>
               
-              <TabsContent value="settings" className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>System Settings</CardTitle>
-                    <CardDescription>
-                      Configure system settings and preferences
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <h4 className="text-sm font-semibold">Authentication</h4>
-                          <div className="text-sm text-muted-foreground">
-                            <p>Admin Passkey: 143143</p>
-                            <p>Allowed Domains: gmail.com, outlook.com, hotmail.com</p>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <h4 className="text-sm font-semibold">Database</h4>
-                          <div className="text-sm text-muted-foreground">
-                            <p>Connected to Supabase</p>
-                            <p>Project: plgjavfrwcphrehmthdv</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+              <TabsContent value="footer" className="mt-6">
+                <FooterEditor onSave={loadStatistics} />
               </TabsContent>
             </Tabs>
           </CardContent>

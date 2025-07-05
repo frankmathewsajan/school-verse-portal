@@ -6,7 +6,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PlusIcon, EditIcon, TrashIcon } from 'lucide-react';
 
-const AnnouncementManager = () => {
+interface AnnouncementManagerProps {
+  onContentUpdate?: () => void;
+}
+
+const AnnouncementManager = ({ onContentUpdate }: AnnouncementManagerProps) => {
   return (
     <div className="space-y-6">
       {/* Add New Announcement */}

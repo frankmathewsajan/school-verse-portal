@@ -5,7 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { PlusIcon, UsersIcon, UploadIcon } from 'lucide-react';
 
-const LeadershipManager = () => {
+interface LeadershipManagerProps {
+  onContentUpdate?: () => void;
+}
+
+const LeadershipManager = ({ onContentUpdate }: LeadershipManagerProps) => {
   return (
     <div className="space-y-6">
       {/* Add New Team Member */}

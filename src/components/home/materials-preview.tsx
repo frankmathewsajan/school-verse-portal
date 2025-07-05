@@ -13,68 +13,22 @@ type LearningMaterial = Database['public']['Tables']['learning_materials']['Row'
 
 export function MaterialsPreview() {
   const [materials, setMaterials] = useState<LearningMaterial[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadMaterials = async () => {
-      const data = await ContentService.getLearningMaterials();
-      setMaterials(data.slice(0, 4)); // Show only the latest 4 materials
+      try {
+        setLoading(true);
+        const data = await ContentService.getLearningMaterials();
+        setMaterials(data.slice(0, 4)); // Show only the latest 4 materials
+      } catch (error) {
+        console.error('Error loading materials:', error);
+      } finally {
+        setLoading(false);
+      }
     };
     loadMaterials();
   }, []);
-
-  // Default fallback data if no materials in database
-  const defaultMaterials = [
-    {
-      id: "1",
-      title: "Primary Mathematics Handbook",
-      description: "Essential mathematics concepts for primary school students with practice exercises.",
-      file_type: "PDF",
-      file_size: "1.8 MB",
-      subject: "Mathematics",
-      class_level: "1-5",
-      file_url: "#",
-      downloads: 0,
-      created_at: new Date().toISOString()
-    },
-    {
-      id: "2",
-      title: "Middle School Science Experiments",
-      description: "Practical science experiments and activities for middle school students.",
-      file_type: "PDF",
-      file_size: "3.2 MB",
-      subject: "Science",
-      class_level: "6-8",
-      file_url: "#",
-      downloads: 0,
-      created_at: new Date().toISOString()
-    },
-    {
-      id: "3",
-      title: "Secondary English Literature Guide",
-      description: "Comprehensive analysis of literary works for secondary students.",
-      file_type: "PDF",
-      file_size: "2.7 MB",
-      subject: "English",
-      class_level: "9-10",
-      file_url: "#",
-      downloads: 0,
-      created_at: new Date().toISOString()
-    },
-    {
-      id: "4",
-      title: "Senior Physics - Advanced Concepts",
-      description: "Detailed physics materials for senior secondary covering mechanics, thermodynamics, and electromagnetism.",
-      file_type: "PDF",
-      file_size: "4.5 MB",
-      subject: "Physics",
-      class_level: "11-12",
-      file_url: "#",
-      downloads: 0,
-      created_at: new Date().toISOString()
-    }
-  ];
-
-  const displayMaterials = materials.length > 0 ? materials : defaultMaterials;
 
   return (
     <section className="py-16 bg-gradient-to-br from-primary/5 to-secondary/5">
@@ -85,35 +39,61 @@ export function MaterialsPreview() {
           centered
         />
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-12">
-          {displayMaterials.map((material) => (
-            <Card key={material.id} className="card-hover h-full">
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-xl">{material.title}</CardTitle>
-                  <Badge variant="outline">{material.file_type}</Badge>
-                </div>
-                <CardDescription className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  <span>{material.file_size}</span>
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">{material.description}</p>
-                <div className="flex gap-2 mt-4">
-                  <Badge variant="secondary">{material.subject}</Badge>
-                  <Badge variant="secondary">Grade {material.class_level}</Badge>
-                </div>
-              </CardContent>
-              <CardFooter className="flex justify-between">
-                <Button variant="ghost" size="sm" className="gap-1">
-                  <Download className="h-4 w-4" />
-                  Download
-                </Button>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-12">
+            {[1, 2, 3, 4].map((i) => (
+              <Card key={i} className="h-full">
+                <CardHeader>
+                  <div className="animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="animate-pulse">
+                    <div className="h-3 bg-gray-200 rounded w-full mb-2"></div>
+                    <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        ) : materials.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-12">
+            {materials.map((material) => (
+              <Card key={material.id} className="card-hover h-full">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <CardTitle className="text-xl">{material.title}</CardTitle>
+                    <Badge variant="outline">{material.file_type?.toUpperCase()}</Badge>
+                  </div>
+                  <CardDescription className="flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    <span>{material.file_size}</span>
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">{material.description}</p>
+                  <div className="flex gap-2 mt-4">
+                    <Badge variant="secondary" className="capitalize">{material.subject}</Badge>
+                    <Badge variant="secondary">Grade {material.class_level}</Badge>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex justify-between">
+                  <Button variant="ghost" size="sm" className="gap-1">
+                    <Download className="h-4 w-4" />
+                    Download
+                  </Button>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12 mt-12">
+            <h3 className="text-xl font-semibold mb-2">No Materials Available</h3>
+            <p className="text-muted-foreground">Learning materials will appear here once they are uploaded.</p>
+          </div>
+        )}
         
         <div className="mt-12 text-center">
           <Button asChild className="rounded-full">

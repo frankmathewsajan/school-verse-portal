@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MainLayout from '@/components/layout/MainLayout';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -8,198 +8,33 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { Download, FileText, Search, SlidersHorizontal, Book, BookOpen } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ContentService } from '@/services/contentService';
+import type { Database } from '@/integrations/supabase/types';
 
-// Dummy materials data (would come from API/database)
-const materialsData = [
-  // Primary School (Grades 1-5)
-  {
-    id: 1,
-    title: "Mathematics Fundamentals - Grade 3",
-    description: "Basic arithmetic, multiplication tables, and simple fractions for Grade 3 students.",
-    fileType: "PDF",
-    fileSize: "1.2 MB",
-    subject: "Mathematics",
-    grade: "3",
-    uploadDate: "2025-03-15",
-    downloadUrl: "#",
-  },
-  {
-    id: 2,
-    title: "English Reading Practice - Grade 1-2",
-    description: "Simple reading exercises and phonics practice for early readers.",
-    fileType: "PDF",
-    fileSize: "0.8 MB",
-    subject: "English",
-    grade: "1-2",
-    uploadDate: "2025-03-12",
-    downloadUrl: "#",
-  },
-  {
-    id: 3,
-    title: "Environmental Science - Grade 5",
-    description: "Introduction to ecosystems, plants, animals, and environmental awareness.",
-    fileType: "PDF",
-    fileSize: "1.5 MB",
-    subject: "Science",
-    grade: "5",
-    uploadDate: "2025-03-10",
-    downloadUrl: "#",
-  },
-  {
-    id: 4,
-    title: "Art & Craft Activities - Grade 1-4",
-    description: "Creative art projects and crafts for primary school students.",
-    fileType: "PDF",
-    fileSize: "2.2 MB",
-    subject: "Art",
-    grade: "1-4",
-    uploadDate: "2025-03-08",
-    downloadUrl: "#",
-  },
-  
-  // Middle School (Grades 6-8)
-  {
-    id: 5,
-    title: "Algebra Basics - Grade 7",
-    description: "Introduction to algebraic expressions, equations, and problem-solving techniques.",
-    fileType: "PDF",
-    fileSize: "2.0 MB",
-    subject: "Mathematics",
-    grade: "7",
-    uploadDate: "2025-03-05",
-    downloadUrl: "#",
-  },
-  {
-    id: 6,
-    title: "Cell Biology Guide - Grade 8",
-    description: "Comprehensive study of cell structure, functions, and processes.",
-    fileType: "PDF",
-    fileSize: "2.8 MB",
-    subject: "Biology",
-    grade: "8",
-    uploadDate: "2025-03-01",
-    downloadUrl: "#",
-  },
-  {
-    id: 7,
-    title: "World History - Grade 6",
-    description: "Overview of ancient civilizations and major historical events.",
-    fileType: "PPTX",
-    fileSize: "3.5 MB",
-    subject: "History",
-    grade: "6",
-    uploadDate: "2025-02-25",
-    downloadUrl: "#",
-  },
-  {
-    id: 8,
-    title: "Computer Fundamentals - Grade 6-8",
-    description: "Introduction to computer systems, basic programming, and digital literacy.",
-    fileType: "PDF",
-    fileSize: "1.8 MB",
-    subject: "Computer Science",
-    grade: "6-8",
-    uploadDate: "2025-02-20",
-    downloadUrl: "#",
-  },
-  
-  // High School (Grades 9-10)
-  {
-    id: 9,
-    title: "Geometry and Trigonometry - Grade 10",
-    description: "Comprehensive study materials covering geometry theorems and trigonometric functions.",
-    fileType: "PDF",
-    fileSize: "2.4 MB",
-    subject: "Mathematics",
-    grade: "10",
-    uploadDate: "2025-02-15",
-    downloadUrl: "#",
-  },
-  {
-    id: 10,
-    title: "Chemistry Formulas & Equations - Grade 9",
-    description: "Essential chemical formulas, balancing equations, and reaction types.",
-    fileType: "PDF",
-    fileSize: "1.9 MB",
-    subject: "Chemistry",
-    grade: "9",
-    uploadDate: "2025-02-10",
-    downloadUrl: "#",
-  },
-  {
-    id: 11,
-    title: "English Literature Analysis - Grade 10",
-    description: "Literary analysis techniques and essay writing for secondary students.",
-    fileType: "DOCX",
-    fileSize: "1.7 MB",
-    subject: "English",
-    grade: "10",
-    uploadDate: "2025-02-05",
-    downloadUrl: "#",
-  },
-  {
-    id: 12,
-    title: "Physics Experiments - Grade 9-10",
-    description: "Laboratory experiments and procedures for high school physics classes.",
-    fileType: "PDF",
-    fileSize: "3.2 MB",
-    subject: "Physics",
-    grade: "9-10",
-    uploadDate: "2025-01-30",
-    downloadUrl: "#",
-  },
-  
-  // Senior Secondary (Grades 11-12)
-  {
-    id: 13,
-    title: "Calculus Complete Guide - Grade 12",
-    description: "Comprehensive calculus materials covering limits, derivatives, and integrals.",
-    fileType: "PDF",
-    fileSize: "4.7 MB",
-    subject: "Mathematics",
-    grade: "12",
-    uploadDate: "2025-01-25",
-    downloadUrl: "#",
-  },
-  {
-    id: 14,
-    title: "Organic Chemistry - Grade 11",
-    description: "Detailed notes on organic compounds, reactions, and mechanisms.",
-    fileType: "PDF",
-    fileSize: "3.8 MB",
-    subject: "Chemistry",
-    grade: "11",
-    uploadDate: "2025-01-20",
-    downloadUrl: "#",
-  },
-  {
-    id: 15,
-    title: "Advanced Physics - Grade 11-12",
-    description: "In-depth physics materials covering mechanics, electromagnetism, and modern physics.",
-    fileType: "PDF",
-    fileSize: "5.2 MB",
-    subject: "Physics",
-    grade: "11-12",
-    uploadDate: "2025-01-15",
-    downloadUrl: "#",
-  },
-  {
-    id: 16,
-    title: "Economics Principles - Grade 12",
-    description: "Foundations of micro and macroeconomics for senior students.",
-    fileType: "PDF",
-    fileSize: "2.6 MB",
-    subject: "Economics",
-    grade: "12",
-    uploadDate: "2025-01-10",
-    downloadUrl: "#",
-  }
-];
+type LearningMaterial = Database['public']['Tables']['learning_materials']['Row'];
 
 const Materials = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentSubject, setCurrentSubject] = useState("all");
   const [gradeFilter, setGradeFilter] = useState("all");
+  const [materials, setMaterials] = useState<LearningMaterial[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  // Load materials from database
+  useEffect(() => {
+    const loadMaterials = async () => {
+      try {
+        setLoading(true);
+        const data = await ContentService.getLearningMaterials();
+        setMaterials(data);
+      } catch (error) {
+        console.error('Error loading materials:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadMaterials();
+  }, []);
   
   // Define grade level groups for filtering
   const gradeGroups = [
@@ -210,25 +45,24 @@ const Materials = () => {
     { id: "11-12", label: "Sr. Secondary (11-12)" }
   ];
   
-  // Individual grades for more specific filtering
-  const individualGrades = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
-  
-  // Get unique subjects for filters
-  const subjects = ["all", ...new Set(materialsData.map(item => item.subject))];
+  // Get unique subjects for filters from actual data
+  const subjects = ["all", ...new Set(materials.map(item => item.subject?.toLowerCase() || 'other'))];
   
   // Filter materials based on search query, selected subject, and grade
-  const filteredMaterials = materialsData.filter(item => {
+  const filteredMaterials = materials.filter(item => {
     const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          item.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesSubject = currentSubject === "all" || item.subject === currentSubject;
+                          (item.description || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSubject = currentSubject === "all" || 
+                          (item.subject?.toLowerCase() || 'other') === currentSubject;
     
     // Handle grade filtering with groups or individual grades
+    const itemGrade = item.class_level || '';
     const matchesGrade = gradeFilter === "all" ? true : 
-                        (gradeFilter === "1-5" && (["1", "2", "3", "4", "5"].some(g => item.grade.includes(g)))) ||
-                        (gradeFilter === "6-8" && (["6", "7", "8"].some(g => item.grade.includes(g)))) ||
-                        (gradeFilter === "9-10" && (["9", "10"].some(g => item.grade.includes(g)))) ||
-                        (gradeFilter === "11-12" && (["11", "12"].some(g => item.grade.includes(g)))) ||
-                        item.grade.includes(gradeFilter);
+                        (gradeFilter === "1-5" && (["1", "2", "3", "4", "5"].some(g => itemGrade.includes(g)))) ||
+                        (gradeFilter === "6-8" && (["6", "7", "8"].some(g => itemGrade.includes(g)))) ||
+                        (gradeFilter === "9-10" && (["9", "10"].some(g => itemGrade.includes(g)))) ||
+                        (gradeFilter === "11-12" && (["11", "12"].some(g => itemGrade.includes(g)))) ||
+                        itemGrade.includes(gradeFilter);
     
     return matchesSearch && matchesSubject && matchesGrade;
   });
@@ -280,13 +114,13 @@ const Materials = () => {
                   <SelectTrigger className="w-full md:w-[180px]">
                     <div className="flex items-center gap-2">
                       <Book className="h-4 w-4" />
-                      <span>{currentSubject === "all" ? "All Subjects" : currentSubject}</span>
+                      <span className="capitalize">{currentSubject === "all" ? "All Subjects" : currentSubject}</span>
                     </div>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Subjects</SelectItem>
                     {subjects.filter(s => s !== "all").map((subject) => (
-                      <SelectItem key={subject} value={subject}>
+                      <SelectItem key={subject} value={subject} className="capitalize">
                         {subject}
                       </SelectItem>
                     ))}
@@ -318,52 +152,62 @@ const Materials = () => {
           {/* Subject Tabs */}
           <Tabs defaultValue="all" value={currentSubject} onValueChange={setCurrentSubject} className="w-full mb-8">
             <TabsList className="flex flex-wrap h-auto p-1 mb-4">
-              {subjects.slice(0, 6).map((subject) => (
+              {subjects.map((subject) => (
                 <TabsTrigger 
                   key={subject} 
                   value={subject}
+                  className="capitalize"
                 >
-                  {subject}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-            <TabsList className="flex flex-wrap h-auto p-1">
-              {subjects.slice(6).map((subject) => (
-                <TabsTrigger 
-                  key={subject} 
-                  value={subject}
-                >
-                  {subject}
+                  {subject === "all" ? "All Subjects" : subject}
                 </TabsTrigger>
               ))}
             </TabsList>
           </Tabs>
           
           {/* Materials Grid */}
-          {filteredMaterials.length > 0 ? (
+          {loading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <Card key={i} className="h-full">
+                  <CardHeader>
+                    <div className="animate-pulse">
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="animate-pulse">
+                      <div className="h-3 bg-gray-200 rounded w-full mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : filteredMaterials.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredMaterials.map((material) => (
                 <Card key={material.id} className="card-hover h-full">
                   <CardHeader>
                     <div className="flex justify-between items-start">
                       <CardTitle className="text-xl">{material.title}</CardTitle>
-                      <Badge variant="outline">{material.fileType}</Badge>
+                      <Badge variant="outline">{material.file_type?.toUpperCase()}</Badge>
                     </div>
                     <CardDescription className="flex items-center gap-2">
                       <FileText className="h-4 w-4" />
-                      <span>{material.fileSize}</span>
+                      <span>{material.file_size}</span>
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm text-muted-foreground">{material.description}</p>
                     <div className="flex gap-2 mt-4">
-                      <Badge variant="secondary">{material.subject}</Badge>
-                      <Badge variant="secondary">Grade {material.grade}</Badge>
+                      <Badge variant="secondary" className="capitalize">{material.subject}</Badge>
+                      <Badge variant="secondary">Grade {material.class_level}</Badge>
                     </div>
                   </CardContent>
                   <CardFooter className="flex justify-between">
                     <span className="text-xs text-muted-foreground">
-                      Uploaded: {new Date(material.uploadDate).toLocaleDateString()}
+                      Uploaded: {material.created_at ? new Date(material.created_at).toLocaleDateString() : 'Unknown'}
                     </span>
                     <Button variant="ghost" size="sm" className="gap-1">
                       <Download className="h-4 w-4" />
@@ -376,12 +220,16 @@ const Materials = () => {
           ) : (
             <div className="text-center py-12">
               <h3 className="text-xl font-semibold mb-2">No materials found</h3>
-              <p className="text-muted-foreground">Try adjusting your search or filter criteria</p>
+              <p className="text-muted-foreground">
+                {materials.length === 0 
+                  ? "No learning materials have been uploaded yet." 
+                  : "Try adjusting your search or filter criteria"}
+              </p>
             </div>
           )}
           
-          {/* Load More Button */}
-          {filteredMaterials.length > 0 && (
+          {/* Load More Button - Only show if there are materials */}
+          {!loading && filteredMaterials.length > 0 && materials.length > filteredMaterials.length && (
             <div className="mt-12 text-center">
               <Button variant="outline">
                 Load More Materials
