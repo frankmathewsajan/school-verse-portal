@@ -198,6 +198,13 @@ The Advanced Content Integration Test Suite is a comprehensive testing framework
 - **Environment Specific**: Separate test environments recommended
 - **Permission Checks**: Verify user permissions before testing
 
+### **Git & Deployment Security**
+- **Environment Variables**: All `.env*` files are properly ignored
+- **API Keys**: Service account files and API keys are protected
+- **Firebase Security**: Cache files and debug logs are excluded
+- **Supabase Security**: Configuration files are ignored
+- **Build Artifacts**: All build outputs are properly excluded
+
 ## Integration with CI/CD
 
 ### **Automated Testing**
