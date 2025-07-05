@@ -213,11 +213,17 @@ export function ContentIntegrationTest() {
     try {
       const originalTitle = heroData?.title || '';
       
-      // Update hero section
+      // Update hero section - just pass the title we want to change
       const success = await ContentService.updateHeroSection({
-        ...heroData,
         title: testConfig.testHeroTitle,
-        updated_at: new Date().toISOString()
+        subtitle: heroData?.subtitle,
+        description: heroData?.description,
+        image_url: heroData?.image_url,
+        image_description: heroData?.image_description,
+        primary_button_text: heroData?.primary_button_text,
+        primary_button_link: heroData?.primary_button_link,
+        secondary_button_text: heroData?.secondary_button_text,
+        secondary_button_link: heroData?.secondary_button_link
       });
       
       const duration = Date.now() - startTime;
@@ -268,9 +274,16 @@ export function ContentIntegrationTest() {
       const originalTitle = aboutData?.title || '';
       
       const success = await ContentService.updateAboutSection({
-        ...aboutData,
         title: testConfig.testAboutTitle,
-        updated_at: new Date().toISOString()
+        subtitle: aboutData?.subtitle,
+        main_content: aboutData?.main_content,
+        principal_message: aboutData?.principal_message,
+        principal_name: aboutData?.principal_name,
+        principal_title: aboutData?.principal_title,
+        principal_image_url: aboutData?.principal_image_url,
+        school_founded_year: aboutData?.school_founded_year,
+        school_description: aboutData?.school_description,
+        features: aboutData?.features
       });
       
       const duration = Date.now() - startTime;
@@ -318,9 +331,13 @@ export function ContentIntegrationTest() {
       const originalTitle = visionData?.title || '';
       
       const success = await ContentService.updateVisionSection({
-        ...visionData,
         title: testConfig.testVisionTitle,
-        updated_at: new Date().toISOString()
+        subtitle: visionData?.subtitle,
+        main_content: visionData?.main_content,
+        principal_message: visionData?.principal_message,
+        principal_name: visionData?.principal_name,
+        principal_title: visionData?.principal_title,
+        features: visionData?.features
       });
       
       const duration = Date.now() - startTime;
@@ -549,22 +566,42 @@ export function ContentIntegrationTest() {
       // Reset to original values
       if (heroData) {
         await ContentService.updateHeroSection({
-          ...heroData,
-          title: 'Welcome to St. G. D. Convent School'
+          title: 'Welcome to St. G. D. Convent School',
+          subtitle: heroData.subtitle,
+          description: heroData.description,
+          image_url: heroData.image_url,
+          image_description: heroData.image_description,
+          primary_button_text: heroData.primary_button_text,
+          primary_button_link: heroData.primary_button_link,
+          secondary_button_text: heroData.secondary_button_text,
+          secondary_button_link: heroData.secondary_button_link
         });
       }
       
       if (aboutData) {
         await ContentService.updateAboutSection({
-          ...aboutData,
-          title: 'About Our School'
+          title: 'About Our School',
+          subtitle: aboutData.subtitle,
+          main_content: aboutData.main_content,
+          principal_message: aboutData.principal_message,
+          principal_name: aboutData.principal_name,
+          principal_title: aboutData.principal_title,
+          principal_image_url: aboutData.principal_image_url,
+          school_founded_year: aboutData.school_founded_year,
+          school_description: aboutData.school_description,
+          features: aboutData.features
         });
       }
       
       if (visionData) {
         await ContentService.updateVisionSection({
-          ...visionData,
-          title: 'Our Vision & Mission'
+          title: 'Our Vision & Mission',
+          subtitle: visionData.subtitle,
+          main_content: visionData.main_content,
+          principal_message: visionData.principal_message,
+          principal_name: visionData.principal_name,
+          principal_title: visionData.principal_title,
+          features: visionData.features
         });
       }
       
