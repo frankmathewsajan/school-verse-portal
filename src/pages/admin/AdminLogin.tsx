@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LockIcon, KeyIcon } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { SystemSettingsService } from '@/services/systemSettingsService';
 
 const AdminLogin = () => {
   const [email, setEmail] = useState('');
@@ -16,9 +17,27 @@ const AdminLogin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPasskeyStep, setShowPasskeyStep] = useState(false);
   const [activeTab, setActiveTab] = useState('signin');
+  const [signupDisabled, setSignupDisabled] = useState(false);
   
   const navigate = useNavigate();
   const { signIn, signUp, verifyPasskey, user, isAuthenticated, loading: authLoading } = useAuth();
+
+  // Check signup disabled status
+  useEffect(() => {
+    const checkSignupStatus = () => {
+      setSignupDisabled(SystemSettingsService.isSignupDisabled());
+    };
+    
+    checkSignupStatus();
+    
+    // Listen for settings changes
+    const handleSettingsChange = () => {
+      checkSignupStatus();
+    };
+    
+    window.addEventListener('systemSettingsChanged', handleSettingsChange);
+    return () => window.removeEventListener('systemSettingsChanged', handleSettingsChange);
+  }, []);
 
   // Redirect if already authenticated
   useEffect(() => {
@@ -134,9 +153,9 @@ const AdminLogin = () => {
               </form>
             ) : (
               <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-2">
+                <TabsList className={`grid w-full ${signupDisabled ? 'grid-cols-1' : 'grid-cols-2'}`}>
                   <TabsTrigger value="signin">Sign In</TabsTrigger>
-                  <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                  {!signupDisabled && <TabsTrigger value="signup">Sign Up</TabsTrigger>}
                 </TabsList>
                 
                 <TabsContent value="signin">
@@ -169,49 +188,51 @@ const AdminLogin = () => {
                   </form>
                 </TabsContent>
                 
-                <TabsContent value="signup">
-                  <form onSubmit={handleSignUp} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-email">Email</Label>
-                      <Input
-                        id="signup-email"
-                        type="email"
-                        placeholder="your.email@domain.com"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        required
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Only gmail.com, outlook.com, and hotmail.com domains are allowed
-                      </p>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-password">Password</Label>
-                      <Input
-                        id="signup-password"
-                        type="password"
-                        placeholder="Choose a password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="confirm-password">Confirm Password</Label>
-                      <Input
-                        id="confirm-password"
-                        type="password"
-                        placeholder="Confirm your password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        required
-                      />
-                    </div>
-                    <Button type="submit" className="w-full" disabled={isLoading || password !== confirmPassword}>
-                      {isLoading ? 'Creating account...' : 'Create Account'}
-                    </Button>
-                  </form>
-                </TabsContent>
+                {!signupDisabled && (
+                  <TabsContent value="signup">
+                    <form onSubmit={handleSignUp} className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="signup-email">Email</Label>
+                        <Input
+                          id="signup-email"
+                          type="email"
+                          placeholder="your.email@domain.com"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          required
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Only gmail.com, outlook.com, and hotmail.com domains are allowed
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="signup-password">Password</Label>
+                        <Input
+                          id="signup-password"
+                          type="password"
+                          placeholder="Choose a password"
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="confirm-password">Confirm Password</Label>
+                        <Input
+                          id="confirm-password"
+                          type="password"
+                          placeholder="Confirm your password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <Button type="submit" className="w-full" disabled={isLoading || password !== confirmPassword}>
+                        {isLoading ? 'Creating account...' : 'Create Account'}
+                      </Button>
+                    </form>
+                  </TabsContent>
+                )}
               </Tabs>
             )}
           </CardContent>

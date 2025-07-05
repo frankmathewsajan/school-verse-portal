@@ -5,6 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { 
   LogOutIcon, 
   UsersIcon, 
@@ -12,13 +14,13 @@ import {
   ImageIcon, 
   BookOpenIcon,
   SettingsIcon,
-  ShieldCheckIcon,
   Home,
   RefreshCwIcon
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { ContentService, DashboardStatistics } from '@/services/contentService';
+import { SystemSettingsService } from '@/services/systemSettingsService';
 
 // Import the new admin components
 import AnnouncementManager from '@/components/admin/AnnouncementManager';
@@ -40,6 +42,7 @@ const AdminDashboard = () => {
     totalFooterSections: 0
   });
   const [loadingStats, setLoadingStats] = useState(true);
+  const [signupDisabled, setSignupDisabled] = useState(false);
 
   // Protect the route
   useEffect(() => {
@@ -54,6 +57,23 @@ const AdminDashboard = () => {
       loadStatistics();
     }
   }, [isAuthenticated]);
+
+  // Load system settings
+  useEffect(() => {
+    const loadSettings = () => {
+      setSignupDisabled(SystemSettingsService.isSignupDisabled());
+    };
+    
+    loadSettings();
+    
+    // Listen for settings changes
+    const handleSettingsChange = () => {
+      loadSettings();
+    };
+    
+    window.addEventListener('systemSettingsChanged', handleSettingsChange);
+    return () => window.removeEventListener('systemSettingsChanged', handleSettingsChange);
+  }, []);
 
   const loadStatistics = async () => {
     try {
@@ -95,6 +115,24 @@ const AdminDashboard = () => {
     window.open('/', '_blank');
   };
 
+  const handleToggleSignup = () => {
+    const success = SystemSettingsService.toggleSignupDisabled();
+    if (success) {
+      const newState = SystemSettingsService.isSignupDisabled();
+      setSignupDisabled(newState);
+      toast({
+        title: "Settings Updated",
+        description: `User signup has been ${newState ? 'disabled' : 'enabled'}`,
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: "Failed to update signup settings",
+        variant: "destructive"
+      });
+    }
+  };
+
   if (authLoading) {
     return (
       <div className="flex min-h-screen bg-gradient-to-br from-primary/5 to-secondary/5 items-center justify-center">
@@ -122,10 +160,6 @@ const AdminDashboard = () => {
           <div className="flex items-center gap-4">
             <div className="text-right">
               <p className="text-sm font-medium">{user?.email}</p>
-              <Badge variant="secondary" className="text-xs">
-                <ShieldCheckIcon className="w-3 h-3 mr-1" />
-                Admin
-              </Badge>
             </div>
             <Button 
               variant="outline" 
@@ -309,7 +343,31 @@ const AdminDashboard = () => {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-4">
+                    <div className="space-y-6">
+                      {/* User Access Control */}
+                      <div className="space-y-3">
+                        <h4 className="text-sm font-semibold">User Access Control</h4>
+                        <div className="flex items-center justify-between p-3 border rounded-lg">
+                          <div className="space-y-0.5">
+                            <Label htmlFor="signup-toggle" className="text-sm font-medium">
+                              Disable User Signup
+                            </Label>
+                            <p className="text-xs text-muted-foreground">
+                              When enabled, new users cannot create accounts. Only existing users can sign in.
+                            </p>
+                          </div>
+                          <Switch
+                            id="signup-toggle"
+                            checked={signupDisabled}
+                            onCheckedChange={handleToggleSignup}
+                          />
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          <p>Current status: {signupDisabled ? '🔒 Signup is disabled' : '🔓 Signup is enabled'}</p>
+                        </div>
+                      </div>
+                      
+                      {/* Authentication Settings */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-2">
                           <h4 className="text-sm font-semibold">Authentication</h4>
