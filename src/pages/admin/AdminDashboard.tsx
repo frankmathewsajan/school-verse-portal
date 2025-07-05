@@ -1,5 +1,4 @@
-
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,23 +11,15 @@ import {
   ImageIcon, 
   BookOpenIcon,
   SettingsIcon,
-  ShieldCheckIcon,
-  Home
+  ShieldCheckIcon
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-
-// Import the new admin components
-import AnnouncementManager from '@/components/admin/AnnouncementManager';
-import GalleryManager from '@/components/admin/GalleryManager';
-import LearningMaterialsManager from '@/components/admin/LearningMaterialsManager';
-import LeadershipManager from '@/components/admin/LeadershipManager';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const { isAuthenticated, loading: authLoading, user, signOut } = useAuth();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState('announcements');
 
   // Protect the route
   useEffect(() => {
@@ -46,10 +37,6 @@ const AdminDashboard = () => {
       });
       navigate("/admin/login");
     }
-  };
-
-  const handlePreview = () => {
-    window.open('/', '_blank');
   };
 
   if (authLoading) {
@@ -84,10 +71,6 @@ const AdminDashboard = () => {
                 Admin
               </Badge>
             </div>
-            <Button variant="outline" size="sm" onClick={handlePreview}>
-              <Home className="w-4 h-4 mr-2" />
-              Preview Site
-            </Button>
             <Button variant="outline" size="sm" onClick={handleSignOut}>
               <LogOutIcon className="w-4 h-4 mr-2" />
               Sign Out
@@ -151,7 +134,7 @@ const AdminDashboard = () => {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <Tabs defaultValue="announcements" className="w-full">
               <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="announcements">
                   <FileTextIcon className="w-4 h-4 mr-2" />
@@ -176,19 +159,71 @@ const AdminDashboard = () => {
               </TabsList>
               
               <TabsContent value="announcements" className="mt-6">
-                <AnnouncementManager />
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Announcements Management</CardTitle>
+                    <CardDescription>
+                      Create, edit, and manage school announcements
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-8 text-muted-foreground">
+                      <FileTextIcon className="w-12 h-12 mx-auto mb-4" />
+                      <p>Announcements management coming soon...</p>
+                    </div>
+                  </CardContent>
+                </Card>
               </TabsContent>
               
               <TabsContent value="gallery" className="mt-6">
-                <GalleryManager />
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Gallery Management</CardTitle>
+                    <CardDescription>
+                      Upload and manage school life photos
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-8 text-muted-foreground">
+                      <ImageIcon className="w-12 h-12 mx-auto mb-4" />
+                      <p>Gallery management coming soon...</p>
+                    </div>
+                  </CardContent>
+                </Card>
               </TabsContent>
               
               <TabsContent value="materials" className="mt-6">
-                <LearningMaterialsManager />
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Learning Materials Management</CardTitle>
+                    <CardDescription>
+                      Upload and manage educational resources
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-8 text-muted-foreground">
+                      <BookOpenIcon className="w-12 h-12 mx-auto mb-4" />
+                      <p>Learning materials management coming soon...</p>
+                    </div>
+                  </CardContent>
+                </Card>
               </TabsContent>
               
               <TabsContent value="leadership" className="mt-6">
-                <LeadershipManager />
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Leadership Team Management</CardTitle>
+                    <CardDescription>
+                      Manage staff profiles and information
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-center py-8 text-muted-foreground">
+                      <UsersIcon className="w-12 h-12 mx-auto mb-4" />
+                      <p>Leadership management coming soon...</p>
+                    </div>
+                  </CardContent>
+                </Card>
               </TabsContent>
               
               <TabsContent value="settings" className="mt-6">
