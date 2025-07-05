@@ -14,7 +14,7 @@ import {
   AlertTriangle, Info, Clock, FileText, Image, Book, Users,
   Target, MessageSquare, Settings, TestTube, Activity, BarChart3
 } from 'lucide-react';
-import { ContentService } from '@/services/contentService';
+import { ContentService, FooterSection } from '@/services/contentService';
 import type { Database as DatabaseType } from '@/integrations/supabase/types';
 
 type HeroSection = DatabaseType['public']['Tables']['hero_section']['Row'];
@@ -42,6 +42,7 @@ interface DatabaseStats {
   gallery_items: number;
   learning_materials: number;
   leadership_members: number;
+  footer_sections: number;
   total_records: number;
 }
 
@@ -69,6 +70,7 @@ export function ContentIntegrationTest() {
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [learningMaterials, setLearningMaterials] = useState<LearningMaterial[]>([]);
   const [leadershipMembers, setLeadershipMembers] = useState<LeadershipMember[]>([]);
+  const [footerSections, setFooterSections] = useState<FooterSection[]>([]);
   
   // Database stats
   const [dbStats, setDbStats] = useState<DatabaseStats>({
@@ -79,6 +81,7 @@ export function ContentIntegrationTest() {
     gallery_items: 0,
     learning_materials: 0,
     leadership_members: 0,
+    footer_sections: 0,
     total_records: 0
   });
   
@@ -91,6 +94,7 @@ export function ContentIntegrationTest() {
     testGalleryTitle: 'TEST: Advanced Gallery Item',
     testMaterialTitle: 'TEST: Advanced Learning Material',
     testLeadershipName: 'TEST: Advanced Leadership Member',
+    testFooterSectionTitle: 'TEST: Advanced Footer Section',
     performanceThreshold: 1000, // milliseconds
     enablePerformanceTests: true,
     enableStressTests: false
@@ -139,14 +143,15 @@ export function ContentIntegrationTest() {
     const startTime = Date.now();
     
     try {
-      const [hero, about, vision, announcementList, galleryItemsList, learningMaterialsList, leadershipMembersList] = await Promise.all([
+      const [hero, about, vision, announcementList, galleryItemsList, learningMaterialsList, leadershipMembersList, footerSectionsList] = await Promise.all([
         ContentService.getHeroSection(),
         ContentService.getAboutSection(),
         ContentService.getVisionSection(),
         ContentService.getAnnouncements(),
         ContentService.getGalleryItems(),
         ContentService.getLearningMaterials(),
-        ContentService.getLeadershipTeam()
+        ContentService.getLeadershipTeam(),
+        ContentService.getFooterSections()
       ]);
       
       setHeroData(hero);
@@ -156,6 +161,7 @@ export function ContentIntegrationTest() {
       setGalleryItems(galleryItemsList);
       setLearningMaterials(learningMaterialsList);
       setLeadershipMembers(leadershipMembersList);
+      setFooterSections(footerSectionsList);
       
       const duration = Date.now() - startTime;
       addTestResult('Data Loading', 'success', 'All content sections loaded successfully', 
@@ -186,15 +192,16 @@ export function ContentIntegrationTest() {
         gallery_items: galleryItems.length,
         learning_materials: learningMaterials.length,
         leadership_members: leadershipMembers.length,
+        footer_sections: footerSections.length,
         total_records: (heroData ? 1 : 0) + (aboutData ? 1 : 0) + (visionData ? 1 : 0) + 
-                     announcements.length + galleryItems.length + learningMaterials.length + leadershipMembers.length
+                     announcements.length + galleryItems.length + learningMaterials.length + leadershipMembers.length + footerSections.length
       };
       
       setDbStats(stats);
       
       const duration = Date.now() - startTime;
       addTestResult('Database Statistics', 'success', 
-        `Loaded statistics for ${stats.total_records} total records across 7 tables`, 
+        `Loaded statistics for ${stats.total_records} total records across 8 tables`, 
         `Performance: ${duration}ms`, duration);
       
     } catch (error) {
@@ -435,7 +442,7 @@ export function ContentIntegrationTest() {
     setTestProgress(0);
     setCurrentTest('Starting Tests...');
     
-    const totalTests = 7;
+    const totalTests = 10; // Updated to include footer tests
     let currentTestIndex = 0;
     
     const updateProgress = () => {
@@ -469,6 +476,16 @@ export function ContentIntegrationTest() {
       updateProgress();
       
       await testLeadershipMembers();
+      updateProgress();
+      
+      // Test footer sections
+      await testFooterSections();
+      updateProgress();
+      
+      await testFooterAdminSections();
+      updateProgress();
+      
+      await testFooterSectionCRUD();
       updateProgress();
       
       setCurrentTest('Tests Complete');
@@ -556,6 +573,105 @@ export function ContentIntegrationTest() {
       addTestResult('Leadership Members Test', 'error', `Failed to load leadership members: ${error}`, 
         `Duration: ${duration}ms`, duration);
       updateComponentResult('Leadership', false);
+    }
+  };
+
+  // Test Footer Sections (Frontend - Active Only)
+  const testFooterSections = async () => {
+    setCurrentTest('Footer Sections Test');
+    const startTime = Date.now();
+    
+    try {
+      const sections = await ContentService.getFooterSections();
+      setFooterSections(sections);
+      
+      const duration = Date.now() - startTime;
+      addTestResult('Footer Sections Test', 'success', 
+        `Loaded ${sections.length} active footer sections for frontend`, 
+        `Performance: ${duration}ms`, duration);
+      updateComponentResult('Footer', true);
+      
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      addTestResult('Footer Sections Test', 'error', `Failed to load footer sections: ${error}`, 
+        `Duration: ${duration}ms`, duration);
+      updateComponentResult('Footer', false);
+    }
+  };
+
+  // Test Footer Admin Management (All Sections)
+  const testFooterAdminSections = async () => {
+    setCurrentTest('Footer Admin Sections Test');
+    const startTime = Date.now();
+    
+    try {
+      const allSections = await ContentService.getAllFooterSections();
+      
+      const duration = Date.now() - startTime;
+      addTestResult('Footer Admin Sections Test', 'success', 
+        `Loaded ${allSections.length} total footer sections for admin (including inactive)`, 
+        `Performance: ${duration}ms`, duration);
+      updateComponentResult('Footer Admin', true);
+      
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      addTestResult('Footer Admin Sections Test', 'error', `Failed to load all footer sections: ${error}`, 
+        `Duration: ${duration}ms`, duration);
+      updateComponentResult('Footer Admin', false);
+    }
+  };
+
+  // Test Footer Section CRUD Operations
+  const testFooterSectionCRUD = async () => {
+    setCurrentTest('Footer Section CRUD Test');
+    const startTime = Date.now();
+    
+    try {
+      // Create a test footer section
+      const testSection = {
+        title: testConfig.testFooterSectionTitle,
+        section_type: 'custom' as const,
+        content: { text: 'This is a test footer section for integration testing.' },
+        display_order: 999,
+        is_active: true
+      };
+      
+      const createdSection = await ContentService.createFooterSection(testSection);
+      
+      const duration = Date.now() - startTime;
+      
+      if (createdSection) {
+        // Test update
+        const updatedSection = await ContentService.updateFooterSection(createdSection.id, {
+          title: `${testConfig.testFooterSectionTitle} - Updated`
+        });
+        
+        if (updatedSection) {
+          addTestResult('Footer Section CRUD Test', 'success', 
+            `Created and updated footer section successfully`, 
+            `Performance: ${duration}ms`, duration);
+          updateComponentResult('Footer CRUD', true);
+          
+          // Clean up - delete the test section
+          await ContentService.deleteFooterSection(createdSection.id);
+        } else {
+          addTestResult('Footer Section CRUD Test', 'error', 
+            'Failed to update footer section', 
+            `Duration: ${duration}ms`, duration);
+          updateComponentResult('Footer CRUD', false);
+        }
+      } else {
+        addTestResult('Footer Section CRUD Test', 'error', 
+          'Failed to create footer section', 
+          `Duration: ${duration}ms`, duration);
+        updateComponentResult('Footer CRUD', false);
+      }
+      
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      addTestResult('Footer Section CRUD Test', 'error', `Error: ${error}`, 
+        `Duration: ${duration}ms`, duration);
+      updateComponentResult('Footer CRUD', false);
     }
   };
 
@@ -821,6 +937,10 @@ export function ContentIntegrationTest() {
                     <div className="text-2xl font-bold text-purple-600">{dbStats.leadership_members}</div>
                     <div className="text-sm text-muted-foreground">Leadership Members</div>
                   </div>
+                  <div className="text-center p-4 bg-indigo-50 rounded-lg">
+                    <div className="text-2xl font-bold text-indigo-600">{dbStats.footer_sections}</div>
+                    <div className="text-sm text-muted-foreground">Footer Sections</div>
+                  </div>
                   <div className="text-center p-4 bg-orange-50 rounded-lg">
                     <div className="text-2xl font-bold text-orange-600">{dbStats.total_records}</div>
                     <div className="text-sm text-muted-foreground">Total Records</div>
@@ -958,6 +1078,8 @@ export function ContentIntegrationTest() {
                     { name: 'Gallery', tested: componentResults.find(r => r.component === 'Gallery')?.status === 'pass' },
                     { name: 'Learning Materials', tested: componentResults.find(r => r.component === 'Learning Materials')?.status === 'pass' },
                     { name: 'Leadership', tested: componentResults.find(r => r.component === 'Leadership')?.status === 'pass' },
+                    { name: 'Footer', tested: componentResults.find(r => r.component === 'Footer')?.status === 'pass' },
+                    { name: 'Footer CRUD', tested: componentResults.find(r => r.component === 'Footer CRUD')?.status === 'pass' },
                   ].map((component, index) => (
                     <div key={index} className={`flex items-center gap-2 p-3 rounded-lg ${
                       component.tested ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-600'

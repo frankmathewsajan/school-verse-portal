@@ -19,6 +19,17 @@ const Footer = () => {
 
   useEffect(() => {
     loadFooterSections();
+    
+    // Listen for footer updates (when admin makes changes)
+    const handleFooterUpdate = () => {
+      loadFooterSections();
+    };
+    
+    window.addEventListener('footerContentUpdated', handleFooterUpdate);
+    
+    return () => {
+      window.removeEventListener('footerContentUpdated', handleFooterUpdate);
+    };
   }, []);
 
   const loadFooterSections = async () => {
@@ -33,13 +44,15 @@ const Footer = () => {
   };
 
   const renderFooterSection = (section: FooterSection) => {
+    const content = section.content as Record<string, any>;
+    
     switch (section.section_type) {
       case 'links':
         return (
           <div key={section.id}>
             <h4 className="text-lg font-semibold mb-4">{section.title}</h4>
             <nav className="flex flex-col space-y-2">
-              {section.content.items?.map((item: any, index: number) => (
+              {content.items?.map((item: any, index: number) => (
                 <Link 
                   key={index}
                   to={item.url} 
@@ -57,22 +70,22 @@ const Footer = () => {
           <div key={section.id}>
             <h4 className="text-lg font-semibold mb-4">{section.title}</h4>
             <div className="space-y-3">
-              {section.content.address && (
+              {content.address && (
                 <div className="flex items-start space-x-3">
                   <MapPin size={20} className="text-primary-foreground/80 mt-1 flex-shrink-0" />
-                  <span className="text-primary-foreground/80">{section.content.address}</span>
+                  <span className="text-primary-foreground/80">{content.address}</span>
                 </div>
               )}
-              {section.content.phone && (
+              {content.phone && (
                 <div className="flex items-center space-x-3">
                   <Phone size={20} className="text-primary-foreground/80 flex-shrink-0" />
-                  <span className="text-primary-foreground/80">{section.content.phone}</span>
+                  <span className="text-primary-foreground/80">{content.phone}</span>
                 </div>
               )}
-              {section.content.email && (
+              {content.email && (
                 <div className="flex items-center space-x-3">
                   <Mail size={20} className="text-primary-foreground/80 flex-shrink-0" />
-                  <span className="text-primary-foreground/80">{section.content.email}</span>
+                  <span className="text-primary-foreground/80">{content.email}</span>
                 </div>
               )}
             </div>
@@ -84,7 +97,7 @@ const Footer = () => {
           <div key={section.id}>
             <h4 className="text-lg font-semibold mb-4">{section.title}</h4>
             <div className="flex space-x-4">
-              {section.content.platforms?.map((platform: any, index: number) => {
+              {content.platforms?.map((platform: any, index: number) => {
                 const getSocialIcon = (iconName: string) => {
                   switch (iconName.toLowerCase()) {
                     case 'facebook':
@@ -122,7 +135,7 @@ const Footer = () => {
           <div key={section.id}>
             <h4 className="text-lg font-semibold mb-4">{section.title}</h4>
             <p className="text-primary-foreground/80 max-w-xs">
-              {section.content.text}
+              {content.text}
             </p>
           </div>
         );

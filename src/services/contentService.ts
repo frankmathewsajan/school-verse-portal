@@ -8,18 +8,7 @@ type Announcement = Database['public']['Tables']['announcements']['Row'];
 type GalleryItem = Database['public']['Tables']['school_life_gallery']['Row'];
 type LearningMaterial = Database['public']['Tables']['learning_materials']['Row'];
 type LeadershipMember = Database['public']['Tables']['leadership_team']['Row'];
-
-// Footer Section interface (temporary - will be added to Database type later)
-export interface FooterSection {
-  id: string;
-  title: string;
-  section_type: 'links' | 'contact' | 'social' | 'custom';
-  content: Record<string, any>;
-  display_order: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-}
+type FooterSection = Database['public']['Tables']['footer_sections']['Row'];
 
 // Statistics interface
 export interface DashboardStatistics {
@@ -29,6 +18,9 @@ export interface DashboardStatistics {
   totalLearningMaterials: number;
   totalFooterSections: number;
 }
+
+// Export the FooterSection type for use in other components
+export type { FooterSection };
 
 export class ContentService {
   
@@ -267,22 +259,45 @@ export class ContentService {
     }
   }
 
-  // Gallery Methods
+  // Gallery Methods - For public gallery page (all active items)
   static async getGalleryItems(): Promise<GalleryItem[]> {
     try {
       const { data, error } = await supabase
         .from('school_life_gallery')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('date_taken', { ascending: false });
       
       if (error) {
         console.error('Error fetching gallery items:', error);
         return [];
       }
       
+      // Dispatch event to notify components of data update
+      window.dispatchEvent(new CustomEvent('galleryUpdated', { detail: data }));
+      
       return data || [];
     } catch (error) {
       console.error('Error in getGalleryItems:', error);
+      return [];
+    }
+  }
+
+  // Get all gallery items for admin management
+  static async getAllGalleryItems(): Promise<GalleryItem[]> {
+    try {
+      const { data, error } = await supabase
+        .from('school_life_gallery')
+        .select('*')
+        .order('date_taken', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching all gallery items:', error);
+        return [];
+      }
+      
+      return data || [];
+    } catch (error) {
+      console.error('Error in getAllGalleryItems:', error);
       return [];
     }
   }
@@ -300,6 +315,9 @@ export class ContentService {
         console.error('Error creating gallery item:', error);
         return false;
       }
+      
+      // Dispatch event to notify components of data update
+      window.dispatchEvent(new CustomEvent('galleryUpdated'));
       
       return true;
     } catch (error) {
@@ -320,6 +338,9 @@ export class ContentService {
         return false;
       }
       
+      // Dispatch event to notify components of data update
+      window.dispatchEvent(new CustomEvent('galleryUpdated'));
+      
       return true;
     } catch (error) {
       console.error('Error in updateGalleryItem:', error);
@@ -338,6 +359,9 @@ export class ContentService {
         console.error('Error deleting gallery item:', error);
         return false;
       }
+      
+      // Dispatch event to notify components of data update
+      window.dispatchEvent(new CustomEvent('galleryUpdated'));
       
       return true;
     } catch (error) {
@@ -578,12 +602,16 @@ export class ContentService {
 
   static async getFooterSectionCount(): Promise<number> {
     try {
-      // TODO: Uncomment when footer_sections table is created
-      // const { count } = await supabase
-      //   .from('footer_sections')
-      //   .select('id', { count: 'exact', head: true });
-      // return count || 0;
-      return 0; // Temporary - will return actual count once table is created
+      const { count, error } = await supabase
+        .from('footer_sections')
+        .select('*', { count: 'exact', head: true });
+
+      if (error) {
+        console.error('Error getting footer section count:', error);
+        return 0;
+      }
+
+      return count || 0;
     } catch (error) {
       console.error('Error getting footer section count:', error);
       return 0;
@@ -616,44 +644,62 @@ export class ContentService {
   }
 
   // Footer Section Methods
+  
+  // Get active footer sections for frontend display
   static async getFooterSections(): Promise<FooterSection[]> {
     try {
-      // TODO: Uncomment when footer_sections table is created
-      // const { data, error } = await supabase
-      //   .from('footer_sections')
-      //   .select('*')
-      //   .eq('is_active', true)
-      //   .order('display_order', { ascending: true });
-      
-      // if (error) {
-      //   console.error('Error fetching footer sections:', error);
-      //   return [];
-      // }
-      
-      // return data || [];
-      return []; // Temporary - will return actual data once table is created
+      const { data, error } = await supabase
+        .from('footer_sections')
+        .select('*')
+        .eq('is_active', true)
+        .order('display_order', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching footer sections:', error);
+        return [];
+      }
+
+      return data || [];
     } catch (error) {
       console.error('Error fetching footer sections:', error);
       return [];
     }
   }
 
+  // Get all footer sections for admin management (including inactive ones)
+  static async getAllFooterSections(): Promise<FooterSection[]> {
+    try {
+      const { data, error } = await supabase
+        .from('footer_sections')
+        .select('*')
+        .order('display_order', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching all footer sections:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching all footer sections:', error);
+      return [];
+    }
+  }
+
   static async getFooterSectionById(id: string): Promise<FooterSection | null> {
     try {
-      // TODO: Uncomment when footer_sections table is created
-      // const { data, error } = await supabase
-      //   .from('footer_sections')
-      //   .select('*')
-      //   .eq('id', id)
-      //   .single();
-      
-      // if (error) {
-      //   console.error('Error fetching footer section:', error);
-      //   return null;
-      // }
-      
-      // return data;
-      return null; // Temporary - will return actual data once table is created
+      const { data, error } = await supabase
+        .from('footer_sections')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching footer section:', error);
+        return null;
+      }
+
+      return data;
     } catch (error) {
       console.error('Error fetching footer section:', error);
       return null;
@@ -662,20 +708,18 @@ export class ContentService {
 
   static async createFooterSection(section: Omit<FooterSection, 'id' | 'created_at' | 'updated_at'>): Promise<FooterSection | null> {
     try {
-      // TODO: Uncomment when footer_sections table is created
-      // const { data, error } = await supabase
-      //   .from('footer_sections')
-      //   .insert([section])
-      //   .select()
-      //   .single();
-      
-      // if (error) {
-      //   console.error('Error creating footer section:', error);
-      //   return null;
-      // }
-      
-      // return data;
-      return null; // Temporary - will return actual data once table is created
+      const { data, error } = await supabase
+        .from('footer_sections')
+        .insert([section])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating footer section:', error);
+        return null;
+      }
+
+      return data;
     } catch (error) {
       console.error('Error creating footer section:', error);
       return null;
@@ -684,21 +728,19 @@ export class ContentService {
 
   static async updateFooterSection(id: string, updates: Partial<Omit<FooterSection, 'id' | 'created_at' | 'updated_at'>>): Promise<FooterSection | null> {
     try {
-      // TODO: Uncomment when footer_sections table is created
-      // const { data, error } = await supabase
-      //   .from('footer_sections')
-      //   .update(updates)
-      //   .eq('id', id)
-      //   .select()
-      //   .single();
-      
-      // if (error) {
-      //   console.error('Error updating footer section:', error);
-      //   return null;
-      // }
-      
-      // return data;
-      return null; // Temporary - will return actual data once table is created
+      const { data, error } = await supabase
+        .from('footer_sections')
+        .update(updates)
+        .eq('id', id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating footer section:', error);
+        return null;
+      }
+
+      return data;
     } catch (error) {
       console.error('Error updating footer section:', error);
       return null;
@@ -707,19 +749,17 @@ export class ContentService {
 
   static async deleteFooterSection(id: string): Promise<boolean> {
     try {
-      // TODO: Uncomment when footer_sections table is created
-      // const { error } = await supabase
-      //   .from('footer_sections')
-      //   .delete()
-      //   .eq('id', id);
-      
-      // if (error) {
-      //   console.error('Error deleting footer section:', error);
-      //   return false;
-      // }
-      
-      // return true;
-      return false; // Temporary - will return actual result once table is created
+      const { error } = await supabase
+        .from('footer_sections')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Error deleting footer section:', error);
+        return false;
+      }
+
+      return true;
     } catch (error) {
       console.error('Error deleting footer section:', error);
       return false;
@@ -728,14 +768,10 @@ export class ContentService {
 
   static async toggleFooterSectionStatus(id: string): Promise<FooterSection | null> {
     try {
-      // TODO: Uncomment when footer_sections table is created
-      // First get the current status
-      // const current = await this.getFooterSectionById(id);
-      // if (!current) return null;
+      const current = await this.getFooterSectionById(id);
+      if (!current) return null;
       
-      // Toggle the status
-      // return await this.updateFooterSection(id, { is_active: !current.is_active });
-      return null; // Temporary - will return actual data once table is created
+      return await this.updateFooterSection(id, { is_active: !current.is_active });
     } catch (error) {
       console.error('Error toggling footer section status:', error);
       return null;
@@ -744,18 +780,13 @@ export class ContentService {
 
   static async reorderFooterSections(sectionIds: string[]): Promise<boolean> {
     try {
-      // TODO: Uncomment when footer_sections table is created
-      // const updates = sectionIds.map((id, index) => ({
-      //   id,
-      //   display_order: index + 1
-      // }));
+      const sections = await this.getFooterSections();
       
-      // for (const update of updates) {
-      //   await this.updateFooterSection(update.id, { display_order: update.display_order });
-      // }
+      for (let i = 0; i < sectionIds.length; i++) {
+        await this.updateFooterSection(sectionIds[i], { display_order: i + 1 });
+      }
       
-      // return true;
-      return false; // Temporary - will return actual result once table is created
+      return true;
     } catch (error) {
       console.error('Error reordering footer sections:', error);
       return false;

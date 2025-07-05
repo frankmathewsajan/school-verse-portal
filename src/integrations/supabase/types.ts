@@ -308,6 +308,39 @@ export type Database = {
         }
         Relationships: []
       }
+      footer_sections: {
+        Row: {
+          id: string
+          title: string
+          section_type: string
+          content: Json
+          display_order: number
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          section_type: string
+          content?: Json
+          display_order?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          section_type?: string
+          content?: Json
+          display_order?: number
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

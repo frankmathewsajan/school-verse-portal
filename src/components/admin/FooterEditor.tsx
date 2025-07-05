@@ -54,7 +54,7 @@ const FooterEditor: React.FC<FooterEditorProps> = ({ onSave }) => {
   const loadFooterSections = async () => {
     try {
       setIsLoading(true);
-      const sections = await ContentService.getFooterSections();
+      const sections = await ContentService.getAllFooterSections();
       setFooterSections(sections);
     } catch (error) {
       console.error('Error loading footer sections:', error);
@@ -74,6 +74,9 @@ const FooterEditor: React.FC<FooterEditorProps> = ({ onSave }) => {
       await loadFooterSections();
       resetForm();
       onSave?.();
+      
+      // Notify other components that footer content has been updated
+      window.dispatchEvent(new CustomEvent('footerContentUpdated'));
     } catch (error) {
       console.error('Error saving footer section:', error);
     }
@@ -84,7 +87,7 @@ const FooterEditor: React.FC<FooterEditorProps> = ({ onSave }) => {
     setFormData({
       title: section.title,
       section_type: section.section_type,
-      content: section.content,
+      content: section.content as Record<string, any>,
       display_order: section.display_order,
       is_active: section.is_active
     });
@@ -97,6 +100,9 @@ const FooterEditor: React.FC<FooterEditorProps> = ({ onSave }) => {
         await ContentService.deleteFooterSection(id);
         await loadFooterSections();
         onSave?.();
+        
+        // Notify other components that footer content has been updated
+        window.dispatchEvent(new CustomEvent('footerContentUpdated'));
       } catch (error) {
         console.error('Error deleting footer section:', error);
       }
@@ -108,6 +114,9 @@ const FooterEditor: React.FC<FooterEditorProps> = ({ onSave }) => {
       await ContentService.toggleFooterSectionStatus(id);
       await loadFooterSections();
       onSave?.();
+      
+      // Notify other components that footer content has been updated
+      window.dispatchEvent(new CustomEvent('footerContentUpdated'));
     } catch (error) {
       console.error('Error toggling footer section status:', error);
     }
