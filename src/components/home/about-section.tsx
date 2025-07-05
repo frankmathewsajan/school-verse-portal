@@ -92,7 +92,7 @@ export function AboutSection() {
       ];
 
   return (
-    <section className="py-16 bg-light">
+    <section id="about" className="py-16 bg-light">
       <div className="container mx-auto px-4">
         <SectionTitle 
           title={aboutData.title} 

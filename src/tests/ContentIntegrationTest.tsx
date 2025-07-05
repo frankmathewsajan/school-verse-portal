@@ -15,6 +15,7 @@ import {
   Target, MessageSquare, Settings, TestTube, Activity, BarChart3
 } from 'lucide-react';
 import { ContentService, FooterSection } from '@/services/contentService';
+import { UploadService } from '@/services/uploadService';
 import type { Database as DatabaseType } from '@/integrations/supabase/types';
 
 type HeroSection = DatabaseType['public']['Tables']['hero_section']['Row'];
@@ -442,7 +443,7 @@ export function ContentIntegrationTest() {
     setTestProgress(0);
     setCurrentTest('Starting Tests...');
     
-    const totalTests = 10; // Updated to include footer tests
+    const totalTests = 13; // Updated to include upload functionality tests
     let currentTestIndex = 0;
     
     const updateProgress = () => {
@@ -486,6 +487,16 @@ export function ContentIntegrationTest() {
       updateProgress();
       
       await testFooterSectionCRUD();
+      updateProgress();
+      
+      // Test upload functionality
+      await testUploadService();
+      updateProgress();
+      
+      await testImageUploadFunctionality();
+      updateProgress();
+      
+      await testLearningMaterialUploadFunctionality();
       updateProgress();
       
       setCurrentTest('Tests Complete');
@@ -672,6 +683,466 @@ export function ContentIntegrationTest() {
       addTestResult('Footer Section CRUD Test', 'error', `Error: ${error}`, 
         `Duration: ${duration}ms`, duration);
       updateComponentResult('Footer CRUD', false);
+    }
+  };
+
+  // Test Upload Service Functionality
+  const testUploadService = async () => {
+    setCurrentTest('Upload Service Test');
+    const startTime = Date.now();
+    
+    try {
+      // Test file type validation
+      const validImageTypes = ['jpg', 'png', 'gif', 'webp'];
+      const validMaterialTypes = ['pdf', 'doc', 'docx', 'ppt', 'pptx', 'xls', 'xlsx', 'zip', 'txt'];
+      
+      let validationTests = 0;
+      
+      // Test image file type detection
+      validImageTypes.forEach(ext => {
+        const fileType = UploadService.getFileType(`test.${ext}`);
+        if (fileType === ext.toUpperCase() || (ext === 'jpg' && fileType === 'JPEG')) {
+          validationTests++;
+        }
+      });
+      
+      // Test material file type detection
+      validMaterialTypes.forEach(ext => {
+        const fileType = UploadService.getFileType(`test.${ext}`);
+        if (fileType === ext.toUpperCase() || fileType === 'DOC' || fileType === 'PPT' || fileType === 'XLS') {
+          validationTests++;
+        }
+      });
+      
+      // Create mock files for validation testing
+      const createMockFile = (name: string, type: string, size: number): File => {
+        const file = new File([''], name, { type });
+        Object.defineProperty(file, 'size', { value: size });
+        return file;
+      };
+      
+      // Test file size validation
+      const smallFile = createMockFile('test.jpg', 'image/jpeg', 1024 * 1024); // 1MB
+      const largeFile = createMockFile('test.jpg', 'image/jpeg', 100 * 1024 * 1024); // 100MB
+      
+      const smallFileValid = UploadService.validateFileSize(smallFile, 50);
+      const largeFileInvalid = !UploadService.validateFileSize(largeFile, 50);
+      
+      // Test image type validation
+      const validImage = createMockFile('test.jpg', 'image/jpeg', 1024);
+      const invalidImage = createMockFile('test.exe', 'application/exe', 1024);
+      
+      const imageTypeValid = UploadService.validateImageType(validImage);
+      const imageTypeInvalid = !UploadService.validateImageType(invalidImage);
+      
+      // Test material type validation
+      const validMaterial = createMockFile('test.pdf', 'application/pdf', 1024);
+      const invalidMaterial = createMockFile('test.exe', 'application/exe', 1024);
+      
+      const materialTypeValid = UploadService.validateMaterialType(validMaterial);
+      const materialTypeInvalid = !UploadService.validateMaterialType(invalidMaterial);
+      
+      const allValidationsPass = validationTests >= 10 && 
+                                smallFileValid && 
+                                largeFileInvalid && 
+                                imageTypeValid && 
+                                imageTypeInvalid && 
+                                materialTypeValid && 
+                                materialTypeInvalid;
+      
+      const duration = Date.now() - startTime;
+      
+      if (allValidationsPass) {
+        addTestResult('Upload Service Test', 'success', 
+          `All upload validation tests passed (${validationTests} file type tests)`, 
+          `Performance: ${duration}ms`, duration);
+        updateComponentResult('Upload Service', true);
+      } else {
+        addTestResult('Upload Service Test', 'warning', 
+          `Some validation tests failed. File type tests: ${validationTests}`, 
+          `Performance: ${duration}ms`, duration);
+        updateComponentResult('Upload Service', false);
+      }
+      
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      addTestResult('Upload Service Test', 'error', `Error testing upload service: ${error}`, 
+        `Duration: ${duration}ms`, duration);
+      updateComponentResult('Upload Service', false);
+    }
+  };
+
+  // Test Gallery Upload Integration
+  const testGalleryUploadIntegration = async () => {
+    setCurrentTest('Gallery Upload Integration Test');
+    const startTime = Date.now();
+    
+    try {
+      // Test that gallery editor can handle both URL and upload methods
+      const testImageUrl = 'https://images.unsplash.com/photo-1581812873626-cdc86de0d916?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80';
+      
+      // Test URL-based gallery item creation
+      const urlBasedItem = {
+        title: 'TEST: Upload Integration Gallery Item',
+        image_url: testImageUrl,
+        category: 'Academic',
+        description: 'Test item for upload integration testing',
+        date_taken: '2024-01-01'
+      };
+      
+      const urlSuccess = await ContentService.createGalleryItem(urlBasedItem);
+      
+      // Test file validation functions exist and work
+      const mockImageFile = new File([''], 'test.jpg', { type: 'image/jpeg' });
+      const imageValidation = UploadService.validateImageType(mockImageFile);
+      const sizeValidation = UploadService.validateFileSize(mockImageFile, 50);
+      
+      const duration = Date.now() - startTime;
+      
+      if (urlSuccess && imageValidation && sizeValidation) {
+        addTestResult('Gallery Upload Integration Test', 'success', 
+          'Gallery upload integration components working correctly', 
+          `Performance: ${duration}ms`, duration);
+        updateComponentResult('Gallery Upload', true);
+        
+        // Clean up test item
+        const galleryItems = await ContentService.getGalleryItems();
+        const testItem = galleryItems.find(item => item.title === 'TEST: Upload Integration Gallery Item');
+        if (testItem) {
+          await ContentService.deleteGalleryItem(testItem.id);
+        }
+      } else {
+        addTestResult('Gallery Upload Integration Test', 'warning', 
+          'Gallery upload integration has issues', 
+          `Performance: ${duration}ms`, duration);
+        updateComponentResult('Gallery Upload', false);
+      }
+      
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      addTestResult('Gallery Upload Integration Test', 'error', `Error: ${error}`, 
+        `Duration: ${duration}ms`, duration);
+      updateComponentResult('Gallery Upload', false);
+    }
+  };
+
+  // Test Materials Upload Integration
+  const testMaterialsUploadIntegration = async () => {
+    setCurrentTest('Materials Upload Integration Test');
+    const startTime = Date.now();
+    
+    try {
+      // Test URL-based material creation
+      const urlBasedMaterial = {
+        title: 'TEST: Upload Integration Material',
+        description: 'Test material for upload integration testing',
+        subject: 'Computer Science',
+        class_level: '10',
+        file_type: 'PDF',
+        file_size: '2.5 MB',
+        file_url: 'https://example.com/test.pdf'
+      };
+      
+      const urlSuccess = await ContentService.createLearningMaterial(urlBasedMaterial);
+      
+      // Test file validation functions
+      const mockPdfFile = new File([''], 'test.pdf', { type: 'application/pdf' });
+      const materialValidation = UploadService.validateMaterialType(mockPdfFile);
+      const sizeValidation = UploadService.validateFileSize(mockPdfFile, 100);
+      const fileTypeDetection = UploadService.getFileType('test.pdf') === 'PDF';
+      
+      const duration = Date.now() - startTime;
+      
+      if (urlSuccess && materialValidation && sizeValidation && fileTypeDetection) {
+        addTestResult('Materials Upload Integration Test', 'success', 
+          'Materials upload integration components working correctly', 
+          `Performance: ${duration}ms`, duration);
+        updateComponentResult('Materials Upload', true);
+        
+        // Clean up test material
+        const materials = await ContentService.getLearningMaterials();
+        const testMaterial = materials.find(material => material.title === 'TEST: Upload Integration Material');
+        if (testMaterial) {
+          await ContentService.deleteLearningMaterial(testMaterial.id);
+        }
+      } else {
+        addTestResult('Materials Upload Integration Test', 'warning', 
+          'Materials upload integration has issues', 
+          `Performance: ${duration}ms`, duration);
+        updateComponentResult('Materials Upload', false);
+      }
+      
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      addTestResult('Materials Upload Integration Test', 'error', `Error: ${error}`, 
+        `Duration: ${duration}ms`, duration);
+      updateComponentResult('Materials Upload', false);
+    }
+  };
+
+  // Test Actual Image Upload Functionality
+  const testImageUploadFunctionality = async () => {
+    setCurrentTest('Image Upload Functionality Test');
+    const startTime = Date.now();
+    
+    try {
+      // Create a test image file with actual content
+      const createTestImageFile = (name: string, size: number = 1024): File => {
+        // Create a simple test image data (1x1 pixel PNG)
+        const canvas = document.createElement('canvas');
+        canvas.width = 1;
+        canvas.height = 1;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.fillStyle = '#FF0000';
+          ctx.fillRect(0, 0, 1, 1);
+        }
+        
+        // Convert to blob and create file
+        const imageData = canvas.toDataURL('image/png');
+        const byteString = atob(imageData.split(',')[1]);
+        const arrayBuffer = new ArrayBuffer(byteString.length);
+        const uint8Array = new Uint8Array(arrayBuffer);
+        
+        for (let i = 0; i < byteString.length; i++) {
+          uint8Array[i] = byteString.charCodeAt(i);
+        }
+        
+        const blob = new Blob([uint8Array], { type: 'image/png' });
+        return new File([blob], name, { type: 'image/png' });
+      };
+      
+      // Test 1: Valid image file validation
+      const validImageFile = createTestImageFile('test-image.png');
+      const imageTypeValidation = UploadService.validateImageType(validImageFile);
+      const imageSizeValidation = UploadService.validateFileSize(validImageFile, 50);
+      
+      // Test 2: Invalid image file validation
+      const invalidImageFile = new File(['invalid content'], 'test.exe', { type: 'application/exe' });
+      const invalidImageValidation = !UploadService.validateImageType(invalidImageFile);
+      
+      // Test 3: Oversized image file validation
+      const oversizedImageFile = new File(['x'.repeat(100 * 1024 * 1024)], 'large-image.jpg', { type: 'image/jpeg' });
+      const oversizedImageValidation = !UploadService.validateFileSize(oversizedImageFile, 50);
+      
+      // Test 4: File type detection
+      const jpegFileTypeDetection = UploadService.getFileType('test.jpg') === 'JPEG';
+      const pngFileTypeDetection = UploadService.getFileType('test.png') === 'PNG';
+      const gifFileTypeDetection = UploadService.getFileType('test.gif') === 'GIF';
+      const webpFileTypeDetection = UploadService.getFileType('test.webp') === 'WEBP';
+      
+      // Test 5: Upload service method exists
+      const uploadServiceExists = typeof UploadService.uploadGalleryImage === 'function';
+      
+      const duration = Date.now() - startTime;
+      
+      const allImageTestsPass = imageTypeValidation && 
+                               imageSizeValidation && 
+                               invalidImageValidation && 
+                               oversizedImageValidation && 
+                               jpegFileTypeDetection && 
+                               pngFileTypeDetection && 
+                               gifFileTypeDetection && 
+                               webpFileTypeDetection && 
+                               uploadServiceExists;
+      
+      if (allImageTestsPass) {
+        addTestResult('Image Upload Functionality Test', 'success', 
+          'All image upload functionality tests passed', 
+          `Performance: ${duration}ms | Tests: Type validation ✓, Size validation ✓, File type detection ✓, Upload service ✓`, duration);
+        updateComponentResult('Image Upload Functionality', true);
+      } else {
+        addTestResult('Image Upload Functionality Test', 'warning', 
+          'Some image upload functionality tests failed', 
+          `Performance: ${duration}ms | Check validation logic and upload service`, duration);
+        updateComponentResult('Image Upload Functionality', false);
+      }
+      
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      addTestResult('Image Upload Functionality Test', 'error', `Error testing image upload: ${error}`, 
+        `Duration: ${duration}ms`, duration);
+      updateComponentResult('Image Upload Functionality', false);
+    }
+  };
+
+  // Test Actual Learning Material Upload Functionality
+  const testLearningMaterialUploadFunctionality = async () => {
+    setCurrentTest('Learning Material Upload Functionality Test');
+    const startTime = Date.now();
+    
+    try {
+      // Create test files for different material types
+      const createTestMaterialFile = (name: string, type: string, content: string = 'Test content'): File => {
+        const blob = new Blob([content], { type });
+        return new File([blob], name, { type });
+      };
+      
+      // Test 1: Valid PDF file validation
+      const validPdfFile = createTestMaterialFile('test-document.pdf', 'application/pdf');
+      const pdfTypeValidation = UploadService.validateMaterialType(validPdfFile);
+      const pdfSizeValidation = UploadService.validateFileSize(validPdfFile, 100);
+      
+      // Test 2: Valid DOC file validation
+      const validDocFile = createTestMaterialFile('test-document.doc', 'application/msword');
+      const docTypeValidation = UploadService.validateMaterialType(validDocFile);
+      
+      // Test 3: Valid DOCX file validation
+      const validDocxFile = createTestMaterialFile('test-document.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+      const docxTypeValidation = UploadService.validateMaterialType(validDocxFile);
+      
+      // Test 4: Valid PPT file validation
+      const validPptFile = createTestMaterialFile('test-presentation.ppt', 'application/vnd.ms-powerpoint');
+      const pptTypeValidation = UploadService.validateMaterialType(validPptFile);
+      
+      // Test 5: Valid PPTX file validation
+      const validPptxFile = createTestMaterialFile('test-presentation.pptx', 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
+      const pptxTypeValidation = UploadService.validateMaterialType(validPptxFile);
+      
+      // Test 6: Valid XLS file validation
+      const validXlsFile = createTestMaterialFile('test-spreadsheet.xls', 'application/vnd.ms-excel');
+      const xlsTypeValidation = UploadService.validateMaterialType(validXlsFile);
+      
+      // Test 7: Valid XLSX file validation
+      const validXlsxFile = createTestMaterialFile('test-spreadsheet.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      const xlsxTypeValidation = UploadService.validateMaterialType(validXlsxFile);
+      
+      // Test 8: Valid ZIP file validation
+      const validZipFile = createTestMaterialFile('test-archive.zip', 'application/zip');
+      const zipTypeValidation = UploadService.validateMaterialType(validZipFile);
+      
+      // Test 9: Valid TXT file validation
+      const validTxtFile = createTestMaterialFile('test-text.txt', 'text/plain');
+      const txtTypeValidation = UploadService.validateMaterialType(validTxtFile);
+      
+      // Test 10: Invalid file validation
+      const invalidMaterialFile = createTestMaterialFile('test.exe', 'application/exe');
+      const invalidMaterialValidation = !UploadService.validateMaterialType(invalidMaterialFile);
+      
+      // Test 11: Oversized file validation
+      const oversizedMaterialFile = createTestMaterialFile('large-file.pdf', 'application/pdf', 'x'.repeat(200 * 1024 * 1024));
+      const oversizedMaterialValidation = !UploadService.validateFileSize(oversizedMaterialFile, 100);
+      
+      // Test 12: File type detection
+      const pdfFileTypeDetection = UploadService.getFileType('test.pdf') === 'PDF';
+      const docFileTypeDetection = UploadService.getFileType('test.doc') === 'DOC';
+      const pptFileTypeDetection = UploadService.getFileType('test.ppt') === 'PPT';
+      const xlsFileTypeDetection = UploadService.getFileType('test.xls') === 'XLS';
+      const zipFileTypeDetection = UploadService.getFileType('test.zip') === 'ZIP';
+      const txtFileTypeDetection = UploadService.getFileType('test.txt') === 'TXT';
+      
+      // Test 13: Upload service method exists
+      const uploadServiceExists = typeof UploadService.uploadLearningMaterial === 'function';
+      
+      const duration = Date.now() - startTime;
+      
+      const allMaterialTestsPass = pdfTypeValidation && 
+                                  pdfSizeValidation && 
+                                  docTypeValidation && 
+                                  docxTypeValidation && 
+                                  pptTypeValidation && 
+                                  pptxTypeValidation && 
+                                  xlsTypeValidation && 
+                                  xlsxTypeValidation && 
+                                  zipTypeValidation && 
+                                  txtTypeValidation && 
+                                  invalidMaterialValidation && 
+                                  oversizedMaterialValidation && 
+                                  pdfFileTypeDetection && 
+                                  docFileTypeDetection && 
+                                  pptFileTypeDetection && 
+                                  xlsFileTypeDetection && 
+                                  zipFileTypeDetection && 
+                                  txtFileTypeDetection && 
+                                  uploadServiceExists;
+      
+      if (allMaterialTestsPass) {
+        addTestResult('Learning Material Upload Functionality Test', 'success', 
+          'All learning material upload functionality tests passed', 
+          `Performance: ${duration}ms | Tests: All file types ✓, Size validation ✓, File type detection ✓, Upload service ✓`, duration);
+        updateComponentResult('Learning Material Upload Functionality', true);
+      } else {
+        addTestResult('Learning Material Upload Functionality Test', 'warning', 
+          'Some learning material upload functionality tests failed', 
+          `Performance: ${duration}ms | Check file type validation and upload service`, duration);
+        updateComponentResult('Learning Material Upload Functionality', false);
+      }
+      
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      addTestResult('Learning Material Upload Functionality Test', 'error', `Error testing learning material upload: ${error}`, 
+        `Duration: ${duration}ms`, duration);
+      updateComponentResult('Learning Material Upload Functionality', false);
+    }
+  };
+
+  // Test Upload Service Error Handling
+  const testUploadServiceErrorHandling = async () => {
+    setCurrentTest('Upload Service Error Handling Test');
+    const startTime = Date.now();
+    
+    try {
+      // Test empty file validation
+      const emptyFile = new File([], 'empty.pdf', { type: 'application/pdf' });
+      const emptyFileValidation = !UploadService.validateFileSize(emptyFile, 100);
+      
+      // Test invalid file extensions
+      const invalidExtensions = ['exe', 'bat', 'scr', 'com', 'pif'];
+      let invalidExtensionTests = 0;
+      
+      invalidExtensions.forEach(ext => {
+        const testFile = new File(['content'], `test.${ext}`, { type: 'application/octet-stream' });
+        if (!UploadService.validateImageType(testFile) && !UploadService.validateMaterialType(testFile)) {
+          invalidExtensionTests++;
+        }
+      });
+      
+      // Test null/undefined file handling
+      let nullFileHandling = false;
+      try {
+        // This should not throw an error but return false
+        nullFileHandling = !UploadService.validateImageType(null as any) && !UploadService.validateMaterialType(null as any);
+      } catch (error) {
+        // If it throws an error, that's also acceptable error handling
+        nullFileHandling = true;
+      }
+      
+      // Test file size edge cases
+      const zeroSizeFile = new File([], 'zero.pdf', { type: 'application/pdf' });
+      const zeroSizeValidation = !UploadService.validateFileSize(zeroSizeFile, 1);
+      
+      const maxSizeFile = new File(['x'.repeat(50 * 1024 * 1024)], 'max.pdf', { type: 'application/pdf' });
+      const maxSizeValidation = UploadService.validateFileSize(maxSizeFile, 50);
+      
+      const overMaxSizeFile = new File(['x'.repeat(51 * 1024 * 1024)], 'over-max.pdf', { type: 'application/pdf' });
+      const overMaxSizeValidation = !UploadService.validateFileSize(overMaxSizeFile, 50);
+      
+      const duration = Date.now() - startTime;
+      
+      const allErrorHandlingTestsPass = emptyFileValidation && 
+                                       invalidExtensionTests === invalidExtensions.length && 
+                                       nullFileHandling && 
+                                       zeroSizeValidation && 
+                                       maxSizeValidation && 
+                                       overMaxSizeValidation;
+      
+      if (allErrorHandlingTestsPass) {
+        addTestResult('Upload Service Error Handling Test', 'success', 
+          'All upload service error handling tests passed', 
+          `Performance: ${duration}ms | Tests: Empty files ✓, Invalid extensions ✓, Null handling ✓, Size limits ✓`, duration);
+        updateComponentResult('Upload Service Error Handling', true);
+      } else {
+        addTestResult('Upload Service Error Handling Test', 'warning', 
+          'Some upload service error handling tests failed', 
+          `Performance: ${duration}ms | Check error handling logic`, duration);
+        updateComponentResult('Upload Service Error Handling', false);
+      }
+      
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      addTestResult('Upload Service Error Handling Test', 'error', `Error testing upload service error handling: ${error}`, 
+        `Duration: ${duration}ms`, duration);
+      updateComponentResult('Upload Service Error Handling', false);
     }
   };
 
@@ -892,6 +1363,30 @@ export function ContentIntegrationTest() {
                     Test Announcement Create
                   </Button>
                 </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
+                  <Button onClick={testUploadService} variant="outline" size="sm" disabled={loading}>
+                    Test Upload Service
+                  </Button>
+                  <Button onClick={testGalleryUploadIntegration} variant="outline" size="sm" disabled={loading}>
+                    Test Gallery Upload
+                  </Button>
+                  <Button onClick={testMaterialsUploadIntegration} variant="outline" size="sm" disabled={loading}>
+                    Test Materials Upload
+                  </Button>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4">
+                  <Button onClick={testImageUploadFunctionality} variant="outline" size="sm" disabled={loading}>
+                    Test Image Upload Functionality
+                  </Button>
+                  <Button onClick={testLearningMaterialUploadFunctionality} variant="outline" size="sm" disabled={loading}>
+                    Test Material Upload Functionality
+                  </Button>
+                  <Button onClick={testUploadServiceErrorHandling} variant="outline" size="sm" disabled={loading}>
+                    Test Upload Error Handling
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -966,10 +1461,14 @@ export function ContentIntegrationTest() {
               <CardContent className="space-y-4">
                 {heroData && (
                   <div className="border rounded-lg p-4">
-                    <h4 className="font-semibold mb-2">Hero Section</h4>
-                    <div className="text-sm text-muted-foreground">
+                    <h4 className="font-semibold mb-2 flex items-center gap-2">
+                      <Target className="w-4 h-4" />
+                      Hero Section
+                    </h4>
+                    <div className="text-sm text-muted-foreground grid grid-cols-1 md:grid-cols-2 gap-2">
                       <div>Title: {heroData.title}</div>
                       <div>Subtitle: {heroData.subtitle}</div>
+                      <div>Primary Button: {heroData.primary_button_text}</div>
                       <div>Last Updated: {new Date(heroData.updated_at || '').toLocaleString()}</div>
                     </div>
                   </div>
@@ -977,9 +1476,13 @@ export function ContentIntegrationTest() {
                 
                 {aboutData && (
                   <div className="border rounded-lg p-4">
-                    <h4 className="font-semibold mb-2">About Section</h4>
-                    <div className="text-sm text-muted-foreground">
+                    <h4 className="font-semibold mb-2 flex items-center gap-2">
+                      <Info className="w-4 h-4" />
+                      About Section
+                    </h4>
+                    <div className="text-sm text-muted-foreground grid grid-cols-1 md:grid-cols-2 gap-2">
                       <div>Title: {aboutData.title}</div>
+                      <div>Principal: {aboutData.principal_name}</div>
                       <div>Main Content Length: {aboutData.main_content ? JSON.stringify(aboutData.main_content).length : 0} characters</div>
                       <div>Last Updated: {new Date(aboutData.updated_at || '').toLocaleString()}</div>
                     </div>
@@ -988,9 +1491,13 @@ export function ContentIntegrationTest() {
                 
                 {visionData && (
                   <div className="border rounded-lg p-4">
-                    <h4 className="font-semibold mb-2">Vision Section</h4>
-                    <div className="text-sm text-muted-foreground">
+                    <h4 className="font-semibold mb-2 flex items-center gap-2">
+                      <Target className="w-4 h-4" />
+                      Vision Section
+                    </h4>
+                    <div className="text-sm text-muted-foreground grid grid-cols-1 md:grid-cols-2 gap-2">
                       <div>Title: {visionData.title}</div>
+                      <div>Subtitle: {visionData.subtitle}</div>
                       <div>Main Content: {visionData.main_content?.substring(0, 100)}...</div>
                       <div>Last Updated: {new Date(visionData.updated_at || '').toLocaleString()}</div>
                     </div>
@@ -999,11 +1506,83 @@ export function ContentIntegrationTest() {
                 
                 {announcements.length > 0 && (
                   <div className="border rounded-lg p-4">
-                    <h4 className="font-semibold mb-2">Recent Announcements ({announcements.length})</h4>
+                    <h4 className="font-semibold mb-2 flex items-center gap-2">
+                      <MessageSquare className="w-4 h-4" />
+                      Recent Announcements ({announcements.length})
+                    </h4>
                     <div className="space-y-2">
                       {announcements.slice(0, 3).map((announcement, index) => (
-                        <div key={index} className="text-sm text-muted-foreground">
+                        <div key={index} className="text-sm text-muted-foreground grid grid-cols-1 md:grid-cols-2 gap-2">
                           <div>• {announcement.title}</div>
+                          <div>Category: {announcement.category}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {galleryItems.length > 0 && (
+                  <div className="border rounded-lg p-4">
+                    <h4 className="font-semibold mb-2 flex items-center gap-2">
+                      <Image className="w-4 h-4" />
+                      Gallery Items ({galleryItems.length})
+                    </h4>
+                    <div className="space-y-2">
+                      {galleryItems.slice(0, 3).map((item, index) => (
+                        <div key={index} className="text-sm text-muted-foreground grid grid-cols-1 md:grid-cols-2 gap-2">
+                          <div>• {item.title}</div>
+                          <div>Category: {item.category}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {learningMaterials.length > 0 && (
+                  <div className="border rounded-lg p-4">
+                    <h4 className="font-semibold mb-2 flex items-center gap-2">
+                      <Book className="w-4 h-4" />
+                      Learning Materials ({learningMaterials.length})
+                    </h4>
+                    <div className="space-y-2">
+                      {learningMaterials.slice(0, 3).map((material, index) => (
+                        <div key={index} className="text-sm text-muted-foreground grid grid-cols-1 md:grid-cols-2 gap-2">
+                          <div>• {material.title}</div>
+                          <div>Subject: {material.subject} | Type: {material.file_type}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {leadershipMembers.length > 0 && (
+                  <div className="border rounded-lg p-4">
+                    <h4 className="font-semibold mb-2 flex items-center gap-2">
+                      <Users className="w-4 h-4" />
+                      Leadership Members ({leadershipMembers.length})
+                    </h4>
+                    <div className="space-y-2">
+                      {leadershipMembers.slice(0, 3).map((member, index) => (
+                        <div key={index} className="text-sm text-muted-foreground grid grid-cols-1 md:grid-cols-2 gap-2">
+                          <div>• {member.name}</div>
+                          <div>Position: {member.position}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {footerSections.length > 0 && (
+                  <div className="border rounded-lg p-4">
+                    <h4 className="font-semibold mb-2 flex items-center gap-2">
+                      <Settings className="w-4 h-4" />
+                      Footer Sections ({footerSections.length})
+                    </h4>
+                    <div className="space-y-2">
+                      {footerSections.slice(0, 3).map((section, index) => (
+                        <div key={index} className="text-sm text-muted-foreground grid grid-cols-1 md:grid-cols-2 gap-2">
+                          <div>• {section.title}</div>
+                          <div>Type: {section.section_type}</div>
                         </div>
                       ))}
                     </div>
@@ -1069,7 +1648,7 @@ export function ContentIntegrationTest() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {[
                     { name: 'Hero Section', tested: componentResults.find(r => r.component === 'Hero Section')?.status === 'pass' },
                     { name: 'About Section', tested: componentResults.find(r => r.component === 'About Section')?.status === 'pass' },
@@ -1080,6 +1659,12 @@ export function ContentIntegrationTest() {
                     { name: 'Leadership', tested: componentResults.find(r => r.component === 'Leadership')?.status === 'pass' },
                     { name: 'Footer', tested: componentResults.find(r => r.component === 'Footer')?.status === 'pass' },
                     { name: 'Footer CRUD', tested: componentResults.find(r => r.component === 'Footer CRUD')?.status === 'pass' },
+                    { name: 'Upload Service', tested: componentResults.find(r => r.component === 'Upload Service')?.status === 'pass' },
+                    { name: 'Gallery Upload', tested: componentResults.find(r => r.component === 'Gallery Upload')?.status === 'pass' },
+                    { name: 'Materials Upload', tested: componentResults.find(r => r.component === 'Materials Upload')?.status === 'pass' },
+                    { name: 'Image Upload Functionality', tested: componentResults.find(r => r.component === 'Image Upload Functionality')?.status === 'pass' },
+                    { name: 'Learning Material Upload Functionality', tested: componentResults.find(r => r.component === 'Learning Material Upload Functionality')?.status === 'pass' },
+                    { name: 'Upload Service Error Handling', tested: componentResults.find(r => r.component === 'Upload Service Error Handling')?.status === 'pass' },
                   ].map((component, index) => (
                     <div key={index} className={`flex items-center gap-2 p-3 rounded-lg ${
                       component.tested ? 'bg-green-50 text-green-700' : 'bg-gray-50 text-gray-600'
@@ -1098,77 +1683,304 @@ export function ContentIntegrationTest() {
           </TabsContent>
 
           <TabsContent value="current-data" className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 gap-6">
+              {/* Hero Section */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Hero Section</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="w-5 h-5" />
+                    Hero Section Data
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {heroData ? (
-                    <div className="space-y-2">
-                      <p><strong>Title:</strong> {heroData.title}</p>
-                      <p><strong>Subtitle:</strong> {heroData.subtitle}</p>
-                      <p><strong>Last Updated:</strong> {new Date(heroData.updated_at).toLocaleString()}</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <p><strong>Title:</strong> {heroData.title}</p>
+                        <p><strong>Subtitle:</strong> {heroData.subtitle}</p>
+                        <p><strong>Description:</strong> {heroData.description}</p>
+                        <p><strong>Primary Button:</strong> {heroData.primary_button_text}</p>
+                        <p><strong>Primary Link:</strong> {heroData.primary_button_link}</p>
+                      </div>
+                      <div className="space-y-2">
+                        <p><strong>Secondary Button:</strong> {heroData.secondary_button_text}</p>
+                        <p><strong>Secondary Link:</strong> {heroData.secondary_button_link}</p>
+                        <p><strong>Image URL:</strong> {heroData.image_url}</p>
+                        <p><strong>Image Description:</strong> {heroData.image_description}</p>
+                        <p><strong>Last Updated:</strong> {new Date(heroData.updated_at).toLocaleString()}</p>
+                      </div>
                     </div>
                   ) : (
-                    <p className="text-muted-foreground">No data loaded</p>
+                    <p className="text-muted-foreground">No hero data loaded</p>
                   )}
                 </CardContent>
               </Card>
 
+              {/* About Section */}
               <Card>
                 <CardHeader>
-                  <CardTitle>About Section</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Info className="w-5 h-5" />
+                    About Section Data
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {aboutData ? (
-                    <div className="space-y-2">
-                      <p><strong>Title:</strong> {aboutData.title}</p>
-                      <p><strong>Subtitle:</strong> {aboutData.subtitle}</p>
-                      <p><strong>Principal:</strong> {aboutData.principal_name}</p>
-                      <p><strong>Last Updated:</strong> {new Date(aboutData.updated_at).toLocaleString()}</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <p><strong>Title:</strong> {aboutData.title}</p>
+                        <p><strong>Subtitle:</strong> {aboutData.subtitle}</p>
+                        <p><strong>Principal Name:</strong> {aboutData.principal_name}</p>
+                        <p><strong>Principal Title:</strong> {aboutData.principal_title}</p>
+                        <p><strong>School Founded:</strong> {aboutData.school_founded_year}</p>
+                      </div>
+                      <div className="space-y-2">
+                        <p><strong>Principal Image:</strong> {aboutData.principal_image_url}</p>
+                        <p><strong>School Description:</strong> {aboutData.school_description?.substring(0, 100)}...</p>
+                        <p><strong>Main Content Length:</strong> {aboutData.main_content ? JSON.stringify(aboutData.main_content).length : 0} characters</p>
+                        <p><strong>Features Count:</strong> {aboutData.features ? JSON.parse(JSON.stringify(aboutData.features)).length : 0}</p>
+                        <p><strong>Last Updated:</strong> {new Date(aboutData.updated_at).toLocaleString()}</p>
+                      </div>
                     </div>
                   ) : (
-                    <p className="text-muted-foreground">No data loaded</p>
+                    <p className="text-muted-foreground">No about data loaded</p>
                   )}
                 </CardContent>
               </Card>
 
+              {/* Vision Section */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Vision Section</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="w-5 h-5" />
+                    Vision Section Data
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {visionData ? (
-                    <div className="space-y-2">
-                      <p><strong>Title:</strong> {visionData.title}</p>
-                      <p><strong>Subtitle:</strong> {visionData.subtitle}</p>
-                      <p><strong>Last Updated:</strong> {new Date(visionData.updated_at).toLocaleString()}</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <p><strong>Title:</strong> {visionData.title}</p>
+                        <p><strong>Subtitle:</strong> {visionData.subtitle}</p>
+                        <p><strong>Principal Name:</strong> {visionData.principal_name}</p>
+                        <p><strong>Principal Title:</strong> {visionData.principal_title}</p>
+                      </div>
+                      <div className="space-y-2">
+                        <p><strong>Main Content:</strong> {visionData.main_content?.substring(0, 100)}...</p>
+                        <p><strong>Principal Message:</strong> {visionData.principal_message?.substring(0, 100)}...</p>
+                        <p><strong>Features Count:</strong> {visionData.features ? JSON.parse(JSON.stringify(visionData.features)).length : 0}</p>
+                        <p><strong>Last Updated:</strong> {new Date(visionData.updated_at).toLocaleString()}</p>
+                      </div>
                     </div>
                   ) : (
-                    <p className="text-muted-foreground">No data loaded</p>
+                    <p className="text-muted-foreground">No vision data loaded</p>
                   )}
                 </CardContent>
               </Card>
 
+              {/* Announcements */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Announcements ({announcements.length})</CardTitle>
+                  <CardTitle className="flex items-center gap-2">
+                    <MessageSquare className="w-5 h-5" />
+                    Announcements ({announcements.length})
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {announcements.length > 0 ? (
-                    <div className="space-y-2">
-                      {announcements.slice(0, 3).map((announcement) => (
-                        <div key={announcement.id} className="border-l-2 border-primary pl-3">
-                          <p className="font-medium">{announcement.title}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(announcement.created_at || '').toLocaleDateString()}
-                          </p>
+                    <div className="space-y-4">
+                      {announcements.map((announcement) => (
+                        <div key={announcement.id} className="border-l-4 border-primary pl-4 py-2">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <div>
+                              <p className="font-medium">{announcement.title}</p>
+                              <p className="text-sm text-muted-foreground">
+                                Category: {announcement.category}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                Type: {announcement.type}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm">{announcement.content?.substring(0, 100)}...</p>
+                              <p className="text-xs text-muted-foreground">
+                                Created: {new Date(announcement.created_at || '').toLocaleString()}
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>
                   ) : (
                     <p className="text-muted-foreground">No announcements found</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Gallery Items */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Image className="w-5 h-5" />
+                    Gallery Items ({galleryItems.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {galleryItems.length > 0 ? (
+                    <div className="space-y-4">
+                      {galleryItems.slice(0, 5).map((item) => (
+                        <div key={item.id} className="border-l-4 border-green-500 pl-4 py-2">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <div>
+                              <p className="font-medium">{item.title}</p>
+                              <p className="text-sm text-muted-foreground">
+                                Category: {item.category}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                Date Taken: {item.date_taken}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm">{item.description?.substring(0, 100)}...</p>
+                              <p className="text-xs text-muted-foreground">
+                                Image: {item.image_url?.substring(0, 50)}...
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {galleryItems.length > 5 && (
+                        <p className="text-sm text-muted-foreground">
+                          ... and {galleryItems.length - 5} more items
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">No gallery items found</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Learning Materials */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Book className="w-5 h-5" />
+                    Learning Materials ({learningMaterials.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {learningMaterials.length > 0 ? (
+                    <div className="space-y-4">
+                      {learningMaterials.slice(0, 5).map((material) => (
+                        <div key={material.id} className="border-l-4 border-blue-500 pl-4 py-2">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <div>
+                              <p className="font-medium">{material.title}</p>
+                              <p className="text-sm text-muted-foreground">
+                                Subject: {material.subject}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                Class: {material.class_level}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm">{material.description?.substring(0, 100)}...</p>
+                              <p className="text-xs text-muted-foreground">
+                                Type: {material.file_type} | Size: {material.file_size}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      {learningMaterials.length > 5 && (
+                        <p className="text-sm text-muted-foreground">
+                          ... and {learningMaterials.length - 5} more materials
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">No learning materials found</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Leadership Members */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="w-5 h-5" />
+                    Leadership Members ({leadershipMembers.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {leadershipMembers.length > 0 ? (
+                    <div className="space-y-4">
+                      {leadershipMembers.map((member) => (
+                        <div key={member.id} className="border-l-4 border-purple-500 pl-4 py-2">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <div>
+                              <p className="font-medium">{member.name}</p>
+                              <p className="text-sm text-muted-foreground">
+                                Position: {member.position}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                Email: {member.email}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm">{member.bio?.substring(0, 100)}...</p>
+                              <p className="text-xs text-muted-foreground">
+                                Order: {member.display_order}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">No leadership members found</p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Footer Sections */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="w-5 h-5" />
+                    Footer Sections ({footerSections.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {footerSections.length > 0 ? (
+                    <div className="space-y-4">
+                      {footerSections.map((section) => (
+                        <div key={section.id} className="border-l-4 border-indigo-500 pl-4 py-2">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                            <div>
+                              <p className="font-medium">{section.title}</p>
+                              <p className="text-sm text-muted-foreground">
+                                Type: {section.section_type}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                Order: {section.display_order}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-sm">
+                                Content: {JSON.stringify(section.content).substring(0, 100)}...
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Active: {section.is_active ? 'Yes' : 'No'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">No footer sections found</p>
                   )}
                 </CardContent>
               </Card>

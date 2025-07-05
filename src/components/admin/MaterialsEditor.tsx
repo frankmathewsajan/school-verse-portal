@@ -5,9 +5,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { FileUpload } from '@/components/ui/file-upload';
 import { useToast } from '@/hooks/use-toast';
-import { Save, Plus, Trash2, Edit, Loader2, Download } from 'lucide-react';
+import { Save, Plus, Trash2, Edit, Loader2, Download, Upload, Link } from 'lucide-react';
 import { ContentService } from '@/services/contentService';
+import { UploadService } from '@/services/uploadService';
 import type { Database } from '@/integrations/supabase/types';
 
 type LearningMaterial = Database['public']['Tables']['learning_materials']['Row'];
@@ -15,7 +18,10 @@ type LearningMaterial = Database['public']['Tables']['learning_materials']['Row'
 export function MaterialsEditor() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [materials, setMaterials] = useState<LearningMaterial[]>([]);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadMethod, setUploadMethod] = useState<'url' | 'upload'>('url');
   const [newMaterial, setNewMaterial] = useState<Partial<LearningMaterial>>({
     title: '',
     description: '',
@@ -47,42 +53,122 @@ export function MaterialsEditor() {
       return;
     }
 
-    setLoading(true);
-    const materialToCreate = {
-      title: newMaterial.title,
-      description: newMaterial.description,
-      subject: newMaterial.subject,
-      class_level: newMaterial.class_level,
-      file_type: newMaterial.file_type || 'PDF',
-      file_size: newMaterial.file_size || '0 MB',
-      file_url: newMaterial.file_url || '#'
-    };
-    
-    const success = await ContentService.createLearningMaterial(materialToCreate);
-    
-    if (success) {
+    if (uploadMethod === 'upload' && !selectedFile) {
       toast({
-        title: "Learning material added",
-        description: "New material has been added to the collection",
+        title: "No file selected",
+        description: "Please select a file to upload",
+        variant: "destructive",
       });
-      setNewMaterial({
-        title: '',
-        description: '',
-        subject: '',
-        class_level: '',
-        file_type: '',
-        file_size: '',
-        file_url: ''
+      return;
+    }
+
+    if (uploadMethod === 'url' && !newMaterial.file_url) {
+      toast({
+        title: "No file URL",
+        description: "Please provide a file URL",
+        variant: "destructive",
       });
-      loadMaterials();
-    } else {
+      return;
+    }
+
+    setLoading(true);
+    setUploading(true);
+
+    try {
+      let fileUrl = newMaterial.file_url;
+      let fileSize = newMaterial.file_size || '0 MB';
+      let fileType = newMaterial.file_type || 'Other';
+
+      // Handle file upload
+      if (uploadMethod === 'upload' && selectedFile) {
+        // Validate file
+        if (!UploadService.validateMaterialType(selectedFile)) {
+          toast({
+            title: "Invalid file type",
+            description: "Please select a valid file type (PDF, DOC, PPT, XLS, ZIP, TXT)",
+            variant: "destructive",
+          });
+          setLoading(false);
+          setUploading(false);
+          return;
+        }
+
+        if (!UploadService.validateFileSize(selectedFile, 100)) {
+          toast({
+            title: "File too large",
+            description: "File must be smaller than 100MB",
+            variant: "destructive",
+          });
+          setLoading(false);
+          setUploading(false);
+          return;
+        }
+
+        // Upload file
+        const uploadResult = await UploadService.uploadLearningMaterial(selectedFile);
+        
+        if (!uploadResult) {
+          toast({
+            title: "Upload failed",
+            description: "Failed to upload file. Please try again.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          setUploading(false);
+          return;
+        }
+
+        fileUrl = uploadResult.url;
+        fileSize = uploadResult.size;
+        fileType = UploadService.getFileType(selectedFile.name);
+      }
+
+      const materialToCreate = {
+        title: newMaterial.title,
+        description: newMaterial.description,
+        subject: newMaterial.subject,
+        class_level: newMaterial.class_level,
+        file_type: fileType,
+        file_size: fileSize,
+        file_url: fileUrl
+      };
+      
+      const success = await ContentService.createLearningMaterial(materialToCreate);
+      
+      if (success) {
+        toast({
+          title: "Learning material added",
+          description: "New material has been added to the collection",
+        });
+        setNewMaterial({
+          title: '',
+          description: '',
+          subject: '',
+          class_level: '',
+          file_type: '',
+          file_size: '',
+          file_url: ''
+        });
+        setSelectedFile(null);
+        loadMaterials();
+      } else {
+        toast({
+          title: "Error adding material",
+          description: "Please try again later",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error adding material:', error);
       toast({
         title: "Error adding material",
         description: "Please try again later",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
+      setUploading(false);
     }
-    setLoading(false);
   };
 
   const handleDeleteMaterial = async (id: string) => {
@@ -157,6 +243,7 @@ export function MaterialsEditor() {
               onChange={(e) => setNewMaterial({ ...newMaterial, description: e.target.value })}
               placeholder="Brief description of the material"
               rows={3}
+              disabled={loading}
             />
           </div>
 
@@ -166,6 +253,7 @@ export function MaterialsEditor() {
               <Select 
                 value={newMaterial.class_level || ''} 
                 onValueChange={(value) => setNewMaterial({ ...newMaterial, class_level: value })}
+                disabled={loading}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select grade" />
@@ -179,50 +267,84 @@ export function MaterialsEditor() {
                 </SelectContent>
               </Select>
             </div>
-            <div>
-              <Label htmlFor="file-type">File Type</Label>
-              <Select 
-                value={newMaterial.file_type || ''} 
-                onValueChange={(value) => setNewMaterial({ ...newMaterial, file_type: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select file type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {fileTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="file-size">File Size</Label>
-              <Input
-                id="file-size"
-                value={newMaterial.file_size || ''}
-                onChange={(e) => setNewMaterial({ ...newMaterial, file_size: e.target.value })}
-                placeholder="e.g., 2.5 MB"
-              />
-            </div>
+            {uploadMethod === 'url' && (
+              <>
+                <div>
+                  <Label htmlFor="file-type">File Type</Label>
+                  <Select 
+                    value={newMaterial.file_type || ''} 
+                    onValueChange={(value) => setNewMaterial({ ...newMaterial, file_type: value })}
+                    disabled={loading}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select file type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {fileTypes.map((type) => (
+                        <SelectItem key={type} value={type}>
+                          {type}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="file-size">File Size</Label>
+                  <Input
+                    id="file-size"
+                    value={newMaterial.file_size || ''}
+                    onChange={(e) => setNewMaterial({ ...newMaterial, file_size: e.target.value })}
+                    placeholder="e.g., 2.5 MB"
+                    disabled={loading}
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           <div>
-            <Label htmlFor="file-url">File URL</Label>
-            <Input
-              id="file-url"
-              value={newMaterial.file_url || ''}
-              onChange={(e) => setNewMaterial({ ...newMaterial, file_url: e.target.value })}
-              placeholder="https://example.com/file.pdf"
-            />
+            <Label>File Source</Label>
+            <Tabs value={uploadMethod} onValueChange={(value) => setUploadMethod(value as 'url' | 'upload')}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="url">
+                  <Link className="w-4 h-4 mr-2" />
+                  URL
+                </TabsTrigger>
+                <TabsTrigger value="upload">
+                  <Upload className="w-4 h-4 mr-2" />
+                  Upload
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="url" className="space-y-2">
+                <Label htmlFor="file-url">File URL</Label>
+                <Input
+                  id="file-url"
+                  value={newMaterial.file_url || ''}
+                  onChange={(e) => setNewMaterial({ ...newMaterial, file_url: e.target.value })}
+                  placeholder="https://example.com/file.pdf"
+                  disabled={loading}
+                />
+              </TabsContent>
+              <TabsContent value="upload" className="space-y-2">
+                <Label>Upload File</Label>
+                <FileUpload
+                  onFileSelect={(file) => setSelectedFile(file)}
+                  onFileRemove={() => setSelectedFile(null)}
+                  accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/zip,text/plain"
+                  maxSize={100}
+                  selectedFile={selectedFile}
+                  uploadType="material"
+                  disabled={loading}
+                />
+              </TabsContent>
+            </Tabs>
           </div>
 
-          <Button onClick={handleAddMaterial} disabled={loading}>
+          <Button onClick={handleAddMaterial} disabled={loading || uploading}>
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Adding...
+                {uploading ? 'Uploading...' : 'Adding...'}
               </>
             ) : (
               <>

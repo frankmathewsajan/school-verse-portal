@@ -4,9 +4,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { FileUpload } from '@/components/ui/file-upload';
 import { useToast } from '@/hooks/use-toast';
-import { Save, Plus, Trash2, Edit, Loader2 } from 'lucide-react';
+import { Save, Plus, Trash2, Edit, Loader2, Upload, Link } from 'lucide-react';
 import { ContentService } from '@/services/contentService';
+import { UploadService } from '@/services/uploadService';
 import type { Database } from '@/integrations/supabase/types';
 
 type GalleryItem = Database['public']['Tables']['school_life_gallery']['Row'];
@@ -14,7 +17,10 @@ type GalleryItem = Database['public']['Tables']['school_life_gallery']['Row'];
 export function GalleryEditor() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadMethod, setUploadMethod] = useState<'url' | 'upload'>('url');
   const [newItem, setNewItem] = useState<Partial<GalleryItem>>({
     title: '',
     image_url: '',
@@ -35,47 +41,123 @@ export function GalleryEditor() {
   };
 
   const handleAddItem = async () => {
-    if (!newItem.title || !newItem.image_url || !newItem.category) {
+    if (!newItem.title || !newItem.category) {
       toast({
         title: "Missing information",
-        description: "Please fill in all required fields",
+        description: "Please fill in title and category",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (uploadMethod === 'upload' && !selectedFile) {
+      toast({
+        title: "No file selected",
+        description: "Please select an image to upload",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (uploadMethod === 'url' && !newItem.image_url) {
+      toast({
+        title: "No image URL",
+        description: "Please provide an image URL",
         variant: "destructive",
       });
       return;
     }
 
     setLoading(true);
-    const itemToCreate = {
-      title: newItem.title,
-      image_url: newItem.image_url,
-      category: newItem.category,
-      description: newItem.description || null,
-      date_taken: newItem.date_taken || null
-    };
-    
-    const success = await ContentService.createGalleryItem(itemToCreate);
-    
-    if (success) {
-      toast({
-        title: "Gallery item added",
-        description: "New photo has been added to the gallery",
-      });
-      setNewItem({
-        title: '',
-        image_url: '',
-        category: '',
-        description: '',
-        date_taken: null
-      });
-      loadGalleryItems();
-    } else {
+    setUploading(true);
+
+    try {
+      let imageUrl = newItem.image_url;
+
+      // Handle file upload
+      if (uploadMethod === 'upload' && selectedFile) {
+        // Validate file
+        if (!UploadService.validateImageType(selectedFile)) {
+          toast({
+            title: "Invalid file type",
+            description: "Please select a valid image file (JPEG, PNG, WebP, GIF)",
+            variant: "destructive",
+          });
+          setLoading(false);
+          setUploading(false);
+          return;
+        }
+
+        if (!UploadService.validateFileSize(selectedFile, 50)) {
+          toast({
+            title: "File too large",
+            description: "Image must be smaller than 50MB",
+            variant: "destructive",
+          });
+          setLoading(false);
+          setUploading(false);
+          return;
+        }
+
+        // Upload file
+        const uploadedUrl = await UploadService.uploadGalleryImage(selectedFile);
+        
+        if (!uploadedUrl) {
+          toast({
+            title: "Upload failed",
+            description: "Failed to upload image. Please try again.",
+            variant: "destructive",
+          });
+          setLoading(false);
+          setUploading(false);
+          return;
+        }
+
+        imageUrl = uploadedUrl;
+      }
+
+      const itemToCreate = {
+        title: newItem.title,
+        image_url: imageUrl,
+        category: newItem.category,
+        description: newItem.description || null,
+        date_taken: newItem.date_taken || null
+      };
+      
+      const success = await ContentService.createGalleryItem(itemToCreate);
+      
+      if (success) {
+        toast({
+          title: "Gallery item added",
+          description: "New photo has been added to the gallery",
+        });
+        setNewItem({
+          title: '',
+          image_url: '',
+          category: '',
+          description: '',
+          date_taken: null
+        });
+        setSelectedFile(null);
+        loadGalleryItems();
+      } else {
+        toast({
+          title: "Error adding item",
+          description: "Please try again later",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error('Error adding gallery item:', error);
       toast({
         title: "Error adding item",
         description: "Please try again later",
         variant: "destructive",
       });
+    } finally {
+      setLoading(false);
+      setUploading(false);
     }
-    setLoading(false);
   };
 
   const handleDeleteItem = async (id: string) => {
@@ -118,6 +200,7 @@ export function GalleryEditor() {
                 value={newItem.title || ''}
                 onChange={(e) => setNewItem({ ...newItem, title: e.target.value })}
                 placeholder="Enter photo title"
+                disabled={loading}
               />
             </div>
             <div>
@@ -125,6 +208,7 @@ export function GalleryEditor() {
               <Select 
                 value={newItem.category || ''} 
                 onValueChange={(value) => setNewItem({ ...newItem, category: value })}
+                disabled={loading}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select category" />
@@ -139,15 +223,43 @@ export function GalleryEditor() {
               </Select>
             </div>
           </div>
-          
+
           <div>
-            <Label htmlFor="image-url">Image URL</Label>
-            <Input
-              id="image-url"
-              value={newItem.image_url || ''}
-              onChange={(e) => setNewItem({ ...newItem, image_url: e.target.value })}
-              placeholder="https://example.com/image.jpg"
-            />
+            <Label>Image Source</Label>
+            <Tabs value={uploadMethod} onValueChange={(value) => setUploadMethod(value as 'url' | 'upload')}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="url">
+                  <Link className="w-4 h-4 mr-2" />
+                  URL
+                </TabsTrigger>
+                <TabsTrigger value="upload">
+                  <Upload className="w-4 h-4 mr-2" />
+                  Upload
+                </TabsTrigger>
+              </TabsList>
+              <TabsContent value="url" className="space-y-2">
+                <Label htmlFor="image-url">Image URL</Label>
+                <Input
+                  id="image-url"
+                  value={newItem.image_url || ''}
+                  onChange={(e) => setNewItem({ ...newItem, image_url: e.target.value })}
+                  placeholder="https://example.com/image.jpg"
+                  disabled={loading}
+                />
+              </TabsContent>
+              <TabsContent value="upload" className="space-y-2">
+                <Label>Upload Image</Label>
+                <FileUpload
+                  onFileSelect={(file) => setSelectedFile(file)}
+                  onFileRemove={() => setSelectedFile(null)}
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  maxSize={50}
+                  selectedFile={selectedFile}
+                  uploadType="image"
+                  disabled={loading}
+                />
+              </TabsContent>
+            </Tabs>
           </div>
 
           <div>
@@ -157,6 +269,7 @@ export function GalleryEditor() {
               value={newItem.description || ''}
               onChange={(e) => setNewItem({ ...newItem, description: e.target.value })}
               placeholder="Brief description of the photo"
+              disabled={loading}
             />
           </div>
 
@@ -167,14 +280,15 @@ export function GalleryEditor() {
               type="date"
               value={newItem.date_taken || ''}
               onChange={(e) => setNewItem({ ...newItem, date_taken: e.target.value })}
+              disabled={loading}
             />
           </div>
 
-          <Button onClick={handleAddItem} disabled={loading}>
+          <Button onClick={handleAddItem} disabled={loading || uploading}>
             {loading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Adding...
+                {uploading ? 'Uploading...' : 'Adding...'}
               </>
             ) : (
               <>
