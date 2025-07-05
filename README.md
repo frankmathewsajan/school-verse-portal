@@ -1,73 +1,111 @@
-# Welcome to your Lovable project
+# School Verse Portal
 
-## Project info
+School Verse Portal is a comprehensive web application designed for St. G. D. Convent School to provide easy access to school information, photo galleries, and educational resources for students, parents, and the school community.
 
-**URL**: https://lovable.dev/projects/0317874a-362b-483f-9d7f-9b02c0ed9962
+## About the Application
 
-## How can I edit this code?
+The School Verse Portal serves as a central hub for all school-related information and resources. It provides an intuitive interface for browsing school activities, accessing learning materials, and staying updated with the latest school news and events.
 
-There are several ways of editing your application.
+## Available Pages and Features
 
-**Use Lovable**
+### Home Page (/)
+The main landing page that provides an overview of the school with the following sections:
+- **Hero Section**: Welcome message and school introduction
+- **About Section**: Information about the school's mission and values
+- **Vision Section**: School's vision and goals
+- **Notifications**: Important announcements and updates
+- **Gallery Preview**: Featured photos from recent school events
+- **Materials Preview**: Quick access to educational resources
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/0317874a-362b-483f-9d7f-9b02c0ed9962) and start prompting.
+### About Section
+Click the "About" link in the navigation menu to scroll directly to the about section on the home page, where you can learn more about the school's history, mission, and values.
 
-Changes made via Lovable will be committed automatically to this repo.
+### Gallery Page (/gallery)
+Browse through the school's photo collection with these features:
+- **Search Functionality**: Find specific photos by title or description
+- **Category Filtering**: Filter photos by different categories (events, activities, etc.)
+- **Responsive Grid Layout**: View photos in an organized grid format
+- **Photo Details**: Each photo includes title, category, and date information
+- **Load More**: Browse through extensive photo collections
 
-**Use your preferred IDE**
+### Materials Page (/materials)
+Access educational resources and study materials:
+- **Grade Level Filtering**: Filter materials by grade groups:
+  - Primary (Grades 1-5)
+  - Middle (Grades 6-8)
+  - Secondary (Grades 9-10)
+  - Senior Secondary (Grades 11-12)
+- **Subject Filtering**: Browse materials by subject area
+- **Search Functionality**: Find specific materials by title or description
+- **File Information**: View file type, size, and upload date
+- **Download Access**: Download materials directly from the portal
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Admin Portal (/admin)
+Secure administrative interface for school staff to manage content:
+- **Login System**: Protected access for authorized personnel
+- **Dashboard**: Overview of all system content
+- **Content Management**: Add, edit, and manage school information
+- **Gallery Management**: Upload and organize photo collections
+- **Materials Management**: Upload and categorize educational resources
+- **Notifications**: Manage school announcements and updates
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## How to Use the Application
 
-Follow these steps:
+### For Students and Parents
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+1. **Browsing School Information**
+   - Visit the home page to get an overview of the school
+   - Click "About" in the navigation to learn more about the school
+   - Check the notifications section for important updates
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+2. **Viewing Photos**
+   - Navigate to the Gallery page
+   - Use the search bar to find specific events or activities
+   - Click on category tabs to filter photos by type
+   - Browse through the photo grid to explore school memories
 
-# Step 3: Install the necessary dependencies.
-npm i
+3. **Accessing Learning Materials**
+   - Go to the Materials page
+   - Select your grade level using the grade group tabs
+   - Choose your subject from the subject filter
+   - Use the search function to find specific materials
+   - Click the download button to access materials
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+### For School Staff
 
-**Edit a file directly in GitHub**
+1. **Administrative Access**
+   - Navigate to the Admin portal
+   - Login with your authorized credentials
+   - Access the dashboard to manage all content
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+2. **Content Management**
+   - Upload new photos to the gallery
+   - Add educational materials for different grades
+   - Update school information and announcements
+   - Manage notifications and important updates
 
-**Use GitHub Codespaces**
+## Navigation
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+The application uses the following main navigation structure:
+- **Home**: Main landing page with school overview
+- **About**: Scrolls to the about section on the home page
+- **Gallery**: Photo gallery with search and filtering
+- **Materials**: Educational resources and study materials
+- **Admin Portal**: Administrative access for content management
 
-## What technologies are used for this project?
+## Technical Features
 
-This project is built with:
+- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
+- **Search Functionality**: Comprehensive search across photos and materials
+- **Filtering System**: Advanced filtering options for better content discovery
+- **Secure Admin Access**: Protected administrative interface
+- **File Management**: Efficient handling of images and document uploads
+- **Real-time Updates**: Dynamic content loading and updates
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Support
 
-## How can I deploy this project?
+For technical support or questions about using the School Verse Portal, please contact the school administration or IT support team.
 
-Simply open [Lovable](https://lovable.dev/projects/0317874a-362b-483f-9d7f-9b02c0ed9962) and click on Share -> Publish.
+---
 
-## Can I connect a custom domain to my Lovable project?
-
-Yes it is!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+*School Verse Portal - Connecting the school community through technology*
