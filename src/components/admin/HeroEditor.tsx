@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { Save, Loader2 } from 'lucide-react';
 import { ContentService } from '@/services/contentService';
+import { ImageUpload } from '@/components/ui/image-upload';
 import type { Database } from '@/integrations/supabase/types';
 
 type HeroSection = Database['public']['Tables']['hero_section']['Row'];
@@ -160,19 +161,17 @@ export function HeroEditor() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Image Settings</CardTitle>
-          <CardDescription>Configure the hero section image</CardDescription>
+          <CardTitle>Hero Image</CardTitle>
+          <CardDescription>Upload or configure the hero section image</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="hero-image">Image URL</Label>
-            <Input
-              id="hero-image"
-              value={heroData.image_url || ''}
-              onChange={(e) => setHeroData({ ...heroData, image_url: e.target.value })}
-              className="mt-1"
-            />
-          </div>
+          <ImageUpload
+            label="Hero Image"
+            value={heroData.image_url || ''}
+            onChange={(url) => setHeroData({ ...heroData, image_url: url })}
+            folder="hero"
+            maxSizeMB={10}
+          />
           
           <div>
             <Label htmlFor="hero-image-description">Image Description (Alt Text)</Label>
@@ -181,6 +180,7 @@ export function HeroEditor() {
               value={heroData.image_description || ''}
               onChange={(e) => setHeroData({ ...heroData, image_description: e.target.value })}
               className="mt-1"
+              placeholder="Describe the image for accessibility"
             />
           </div>
         </CardContent>

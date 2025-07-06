@@ -1,6 +1,39 @@
 import { supabase } from '@/integrations/supabase/client';
 
 export class UploadService {
+  // Upload general image (for hero, about, principal, etc.)
+  static async uploadImage(file: File, folder: string = 'images'): Promise<string | null> {
+    try {
+      // Generate unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+      const filePath = `${folder}/${fileName}`;
+
+      // Upload file
+      const { data, error } = await supabase.storage
+        .from('site-images')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) {
+        console.error('Error uploading image:', error);
+        return null;
+      }
+
+      // Get public URL
+      const { data: publicData } = supabase.storage
+        .from('site-images')
+        .getPublicUrl(filePath);
+
+      return publicData.publicUrl;
+    } catch (error) {
+      console.error('Error in uploadImage:', error);
+      return null;
+    }
+  }
+
   // Upload gallery image
   static async uploadGalleryImage(file: File): Promise<string | null> {
     try {

@@ -23,6 +23,10 @@ import { ContentService, DashboardStatistics } from '@/services/contentService';
 // Import the new admin components
 import { HeroEditor } from '@/components/admin/HeroEditor';
 import { AboutEditor } from '@/components/admin/AboutEditor';
+import { VisionEditor } from '@/components/admin/VisionEditor';
+import { HistoryEditor } from '@/components/admin/HistoryEditor';
+import { FacilitiesEditor } from '@/components/admin/FacilitiesEditor';
+import { StaffEditor } from '@/components/admin/StaffEditor';
 import { NotificationEditor } from '@/components/admin/NotificationEditor';
 import { GalleryEditor } from '@/components/admin/GalleryEditor';
 import { MaterialsEditor } from '@/components/admin/MaterialsEditor';
@@ -244,7 +248,7 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-6">
+              <TabsList className="grid w-full grid-cols-10">
                 <TabsTrigger value="hero">
                   <HomeIcon className="w-4 h-4 mr-2" />
                   Hero
@@ -253,9 +257,25 @@ const AdminDashboard = () => {
                   <InfoIcon className="w-4 h-4 mr-2" />
                   About
                 </TabsTrigger>
+                <TabsTrigger value="vision">
+                  <BookOpenIcon className="w-4 h-4 mr-2" />
+                  Vision
+                </TabsTrigger>
+                <TabsTrigger value="history">
+                  <FileTextIcon className="w-4 h-4 mr-2" />
+                  History
+                </TabsTrigger>
+                <TabsTrigger value="facilities">
+                  <SettingsIcon className="w-4 h-4 mr-2" />
+                  Facilities
+                </TabsTrigger>
+                <TabsTrigger value="staff">
+                  <UsersIcon className="w-4 h-4 mr-2" />
+                  Staff
+                </TabsTrigger>
                 <TabsTrigger value="announcements">
                   <FileTextIcon className="w-4 h-4 mr-2" />
-                  Announcements
+                  News
                 </TabsTrigger>
                 <TabsTrigger value="gallery">
                   <ImageIcon className="w-4 h-4 mr-2" />
@@ -277,6 +297,22 @@ const AdminDashboard = () => {
 
               <TabsContent value="about" className="mt-6">
                 <AboutEditor />
+              </TabsContent>
+
+              <TabsContent value="vision" className="mt-6">
+                <VisionEditor />
+              </TabsContent>
+
+              <TabsContent value="history" className="mt-6">
+                <HistoryEditor />
+              </TabsContent>
+
+              <TabsContent value="facilities" className="mt-6">
+                <FacilitiesEditor />
+              </TabsContent>
+
+              <TabsContent value="staff" className="mt-6">
+                <StaffEditor />
               </TabsContent>
               
               <TabsContent value="announcements" className="mt-6">

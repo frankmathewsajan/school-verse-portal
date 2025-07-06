@@ -9,7 +9,7 @@ import type { Database } from '@/integrations/supabase/types';
 type AboutSection = Database['public']['Tables']['about_section']['Row'];
 
 export function AboutSection() {
-  const [aboutData, setAboutData] = useState<AboutSection>({
+  const [aboutData, setAboutData] = useState<AboutSection & { about_image_url?: string }>({
     id: 'main',
     title: 'About Our School',
     subtitle: 'Excellence in education through innovative teaching and comprehensive curriculum',
@@ -22,6 +22,7 @@ export function AboutSection() {
     principal_name: 'Mr. Ashirwad Goyal',
     principal_title: 'Principal, St. G. D. Convent School',
     principal_image_url: 'https://randomuser.me/api/portraits/women/45.jpg',
+    about_image_url: 'https://images.unsplash.com/photo-1519452635265-7b1fbfd1e4e0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80',
     school_founded_year: 1985,
     school_description: null,
     features: [
@@ -103,7 +104,7 @@ export function AboutSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mt-12">
           <div className="relative rounded-lg overflow-hidden h-[400px]">
             <img 
-              src="https://images.unsplash.com/photo-1519452635265-7b1fbfd1e4e0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80" 
+              src={aboutData.about_image_url || "https://images.unsplash.com/photo-1519452635265-7b1fbfd1e4e0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80"} 
               alt="School building"
               className="w-full h-full object-cover"
             />

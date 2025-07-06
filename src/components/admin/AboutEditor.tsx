@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useToast } from '@/hooks/use-toast';
 import { Save, Plus, Trash2, Loader2 } from 'lucide-react';
 import { ContentService } from '@/services/contentService';
+import { ImageUpload } from '@/components/ui/image-upload';
 import type { Database } from '@/integrations/supabase/types';
 
 type AboutSection = Database['public']['Tables']['about_section']['Row'];
@@ -14,7 +15,7 @@ type AboutSection = Database['public']['Tables']['about_section']['Row'];
 export function AboutEditor() {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [aboutData, setAboutData] = useState<AboutSection>({
+  const [aboutData, setAboutData] = useState<AboutSection & { about_image_url?: string }>({
     id: 'main',
     title: 'About Our School',
     subtitle: 'Excellence in education through innovative teaching and comprehensive curriculum',
@@ -27,6 +28,7 @@ export function AboutEditor() {
     principal_name: 'Mr. Ashirwad Goyal',
     principal_title: 'Principal, St. G. D. Convent School',
     principal_image_url: 'https://randomuser.me/api/portraits/women/45.jpg',
+    about_image_url: 'https://images.unsplash.com/photo-1519452635265-7b1fbfd1e4e0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80',
     school_founded_year: 1985,
     school_description: null,
     features: [
@@ -190,6 +192,14 @@ export function AboutEditor() {
             />
           </div>
 
+          <ImageUpload
+            label="About Section Image"
+            value={(aboutData as any).about_image_url || ''}
+            onChange={(url) => setAboutData({ ...aboutData, about_image_url: url } as any)}
+            folder="about"
+            maxSizeMB={10}
+          />
+
           <div>
             <div className="flex justify-between items-center">
               <Label>Main Content Paragraphs</Label>
@@ -261,15 +271,13 @@ export function AboutEditor() {
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="principal-image">Principal's Image URL</Label>
-            <Input
-              id="principal-image"
-              value={aboutData.principal_image_url || ''}
-              onChange={(e) => setAboutData({ ...aboutData, principal_image_url: e.target.value })}
-              placeholder="https://example.com/principal.jpg"
-            />
-          </div>
+          <ImageUpload
+            label="Principal's Photo"
+            value={aboutData.principal_image_url || ''}
+            onChange={(url) => setAboutData({ ...aboutData, principal_image_url: url })}
+            folder="principal"
+            maxSizeMB={5}
+          />
         </CardContent>
       </Card>
 
