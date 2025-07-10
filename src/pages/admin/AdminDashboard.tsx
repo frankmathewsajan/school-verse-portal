@@ -28,7 +28,7 @@ import { HistoryEditor } from '@/components/admin/HistoryEditor';
 import { FacilitiesEditor } from '@/components/admin/FacilitiesEditor';
 import { StaffEditor } from '@/components/admin/StaffEditor';
 import { NotificationEditor } from '@/components/admin/NotificationEditor';
-import { GalleryEditor } from '@/components/admin/GalleryEditor';
+import UnifiedGalleryEditor from '@/components/admin/UnifiedGalleryEditor';
 import { MaterialsEditor } from '@/components/admin/MaterialsEditor';
 import FooterEditor from '@/components/admin/FooterEditor';
 
@@ -320,7 +320,7 @@ const AdminDashboard = () => {
               </TabsContent>
               
               <TabsContent value="gallery" className="mt-6">
-                <GalleryEditor />
+                <UnifiedGalleryEditor />
               </TabsContent>
               
               <TabsContent value="materials" className="mt-6">

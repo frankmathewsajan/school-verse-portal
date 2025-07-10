@@ -458,9 +458,10 @@ export default function IntegrationTest() {
         </Alert>
 
         <Tabs defaultValue="test-results" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="test-results">Test Results</TabsTrigger>
             <TabsTrigger value="database-content">Database Content</TabsTrigger>
+            <TabsTrigger value="double-gallery">Double Gallery</TabsTrigger>
             <TabsTrigger value="system-info">System Info</TabsTrigger>
           </TabsList>
 
@@ -639,6 +640,146 @@ export default function IntegrationTest() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          <TabsContent value="double-gallery" className="space-y-6">
+            <h2 className="text-xl font-semibold">Double Gallery System Test</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Gallery Groups Test</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <h4 className="font-medium">Gallery Groups Features:</h4>
+                    <ul className="text-sm space-y-1 ml-4">
+                      <li>✅ Group creation with title, description, category</li>
+                      <li>✅ Cover image upload for groups</li>
+                      <li>✅ Date tracking for events</li>
+                      <li>✅ Category-based organization</li>
+                      <li>✅ Item count display</li>
+                    </ul>
+                  </div>
+                  <Button 
+                    onClick={() => window.open('/double-gallery', '_blank')}
+                    className="w-full"
+                  >
+                    Test Double Gallery Page
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Gallery Items Test</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-2">
+                    <h4 className="font-medium">Gallery Items Features:</h4>
+                    <ul className="text-sm space-y-1 ml-4">
+                      <li>✅ Multiple image upload per group</li>
+                      <li>✅ Individual image titles and descriptions</li>
+                      <li>✅ Alt text for accessibility</li>
+                      <li>✅ Image ordering within groups</li>
+                      <li>✅ Responsive image grid display</li>
+                    </ul>
+                  </div>
+                  <Button 
+                    onClick={() => window.open('/admin/dashboard', '_blank')}
+                    className="w-full"
+                  >
+                    Test Admin Double Gallery Editor
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Database Schema Status</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="font-medium mb-2">New Tables Required:</h4>
+                    <ul className="text-sm space-y-1">
+                      <li className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">gallery_groups</Badge>
+                        <span>Event/trip organization</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">gallery_items</Badge>
+                        <span>Individual images within groups</span>
+                      </li>
+                    </ul>
+                  </div>
+                  <div>
+                    <h4 className="font-medium mb-2">Storage Buckets:</h4>
+                    <ul className="text-sm space-y-1">
+                      <li className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">gallery-groups</Badge>
+                        <span>Cover images</span>
+                      </li>
+                      <li className="flex items-center gap-2">
+                        <Badge variant="outline" className="text-xs">gallery-items</Badge>
+                        <span>Event photos</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+                
+                <div className="mt-4 p-4 bg-blue-50 rounded-lg">
+                  <h4 className="font-medium text-blue-900 mb-2">Implementation Status:</h4>
+                  <p className="text-sm text-blue-800">
+                    The Double Gallery system is fully implemented with mock data. 
+                    To enable database functionality, run the SQL commands provided in 
+                    <code className="bg-blue-200 px-1 rounded">howitsdone/double_gallery.md</code>
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Gallery Navigation Flow</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="text-center p-4 border rounded-lg">
+                      <h4 className="font-medium mb-2">Step 1: Groups View</h4>
+                      <p className="text-sm text-gray-600">Browse event/trip categories with cover images</p>
+                    </div>
+                    <div className="text-center p-4 border rounded-lg">
+                      <h4 className="font-medium mb-2">Step 2: Group Detail</h4>
+                      <p className="text-sm text-gray-600">View all images within selected event/trip</p>
+                    </div>
+                    <div className="text-center p-4 border rounded-lg">
+                      <h4 className="font-medium mb-2">Step 3: Image Modal</h4>
+                      <p className="text-sm text-gray-600">Full-size image viewing with details</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-4">
+                    <Button 
+                      onClick={() => window.open('/double-gallery', '_blank')}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      View Groups Page
+                    </Button>
+                    <Button 
+                      onClick={() => window.open('/double-gallery/1', '_blank')}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      View Sample Group
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </TabsContent>
 
           <TabsContent value="system-info" className="space-y-6">

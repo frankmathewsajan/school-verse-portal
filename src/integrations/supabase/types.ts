@@ -176,6 +176,92 @@ export type Database = {
         }
         Relationships: []
       }
+      gallery_groups: {
+        Row: {
+          id: string
+          title: string
+          description: string | null
+          cover_image_url: string | null
+          category: string | null
+          date_taken: string | null
+          display_order: number | null
+          is_active: boolean | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          title: string
+          description?: string | null
+          cover_image_url?: string | null
+          category?: string | null
+          date_taken?: string | null
+          display_order?: number | null
+          is_active?: boolean | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          title?: string
+          description?: string | null
+          cover_image_url?: string | null
+          category?: string | null
+          date_taken?: string | null
+          display_order?: number | null
+          is_active?: boolean | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      gallery_items: {
+        Row: {
+          id: string
+          group_id: string
+          title: string | null
+          description: string | null
+          image_url: string
+          alt_text: string | null
+          display_order: number | null
+          is_active: boolean | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          group_id: string
+          title?: string | null
+          description?: string | null
+          image_url: string
+          alt_text?: string | null
+          display_order?: number | null
+          is_active?: boolean | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          group_id?: string
+          title?: string | null
+          description?: string | null
+          image_url?: string
+          alt_text?: string | null
+          display_order?: number | null
+          is_active?: boolean | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gallery_items_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "gallery_groups"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       hero_section: {
         Row: {
           id: string
