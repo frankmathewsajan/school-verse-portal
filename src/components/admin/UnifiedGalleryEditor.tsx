@@ -13,6 +13,7 @@ import { Trash2, Plus, Upload, Eye, Edit, Save, X, ImageIcon, FolderOpen, Images
 import { ContentService } from '@/services/contentService';
 import { UploadService } from '@/services/uploadService';
 import { Database } from '../../integrations/supabase/types';
+import { supabase } from '@/integrations/supabase/client';
 
 type GalleryItem = Database['public']['Tables']['school_life_gallery']['Row'];
 type GalleryGroup = Database['public']['Tables']['gallery_groups']['Row'];
@@ -116,13 +117,22 @@ export default function UnifiedGalleryEditor() {
   const loadAllGalleryData = async () => {
     try {
       setLoading(true);
+      console.log('Loading all gallery data...');
+      
       const [groups, items] = await Promise.all([
         ContentService.getAllGalleryGroups(),
         ContentService.getGalleryItems()
       ]);
+      
+      console.log('Loaded groups:', groups.length, groups);
+      console.log('Loaded single items:', items.length, items);
+      
       setGalleryGroups(groups);
       setSingleGallery(items);
+      
+      console.log('State updated. Groups:', groups.length, 'Singles:', items.length);
     } catch (err) {
+      console.error('Error loading gallery data:', err);
       setError('Failed to load gallery data');
     } finally {
       setLoading(false);
@@ -260,21 +270,47 @@ export default function UnifiedGalleryEditor() {
     try {
       setLoading(true);
       
-      const imageUrl = await UploadService.uploadGalleryImage(newSingleImage.image);
+      console.log('Uploading single image:', newSingleImage);
       
-      await ContentService.createGalleryItem({
+      const imageUrl = await UploadService.uploadGalleryImage(newSingleImage.image);
+      console.log('Image uploaded to:', imageUrl);
+      
+      if (!imageUrl) {
+        throw new Error('Failed to upload image');
+      }
+      
+      const itemData = {
         title: newSingleImage.title,
-        description: newSingleImage.description,
+        description: newSingleImage.description || null,
         image_url: imageUrl,
         category: newSingleImage.category,
-        date_taken: newSingleImage.dateTaken || null
-      });
-
+        date_taken: newSingleImage.dateTaken || null,
+        created_at: new Date().toISOString()
+      };
+      
+      console.log('Creating gallery item with data:', itemData);
+      
+      // Directly insert into school_life_gallery table to ensure it goes to the right place
+      const { data, error } = await supabase
+        .from('school_life_gallery')
+        .insert(itemData)
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Database error:', error);
+        throw new Error(`Database error: ${error.message}`);
+      }
+      
+      console.log('Item created successfully:', data);
+      
       setMessage('Image uploaded successfully!');
       resetSingleImageForm();
       await loadAllGalleryData();
+      
     } catch (err) {
-      setError('Failed to upload image');
+      console.error('Error uploading single image:', err);
+      setError(`Failed to upload image: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
@@ -425,9 +461,35 @@ export default function UnifiedGalleryEditor() {
   };
 
   const handleSelectGroup = (group: GalleryGroupWithItems) => {
+    // Clear any editing state when switching groups
+    setEditingItem(null);
+    setEditForm({
+      title: '',
+      description: '',
+      altText: ''
+    });
+    
     setSelectedGroup(group);
     setGroupView('items');
     loadGalleryItems(group.id);
+  };
+
+  const handleTabChange = (newTab: string) => {
+    // Clear editing state when switching tabs
+    setEditingItem(null);
+    setEditForm({
+      title: '',
+      description: '',
+      altText: ''
+    });
+    
+    // Reset to groups view when switching away from events
+    if (newTab !== 'events') {
+      setGroupView('groups');
+      setSelectedGroup(null);
+    }
+    
+    setActiveTab(newTab);
   };
 
   const clearMessages = () => {
@@ -446,9 +508,20 @@ export default function UnifiedGalleryEditor() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Gallery Management</h2>
-        <Badge variant="outline" className="text-sm">
-          {galleryGroups.length} Events • {singleGallery.length} Single Images • {totalImages} Total
-        </Badge>
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={loadAllGalleryData}
+            disabled={loading}
+            className="flex items-center gap-2"
+          >
+            {loading ? 'Loading...' : 'Refresh'}
+          </Button>
+          <Badge variant="outline" className="text-sm">
+            {galleryGroups.length} Events • {singleGallery.length} Single Images • {totalImages} Total
+          </Badge>
+        </div>
       </div>
 
       {message && (
@@ -469,7 +542,7 @@ export default function UnifiedGalleryEditor() {
         </Alert>
       )}
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab} onValueChange={handleTabChange}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="events" className="flex items-center gap-2">
             <FolderOpen className="w-4 h-4" />
@@ -630,7 +703,15 @@ export default function UnifiedGalleryEditor() {
                 <div className="flex items-center justify-between">
                   <Button
                     variant="outline"
-                    onClick={() => setGroupView('groups')}
+                    onClick={() => {
+                      setEditingItem(null);
+                      setEditForm({
+                        title: '',
+                        description: '',
+                        altText: ''
+                      });
+                      setGroupView('groups');
+                    }}
                     className="flex items-center gap-2"
                   >
                     <FolderOpen className="w-4 h-4" />

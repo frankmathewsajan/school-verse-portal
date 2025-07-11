@@ -1271,11 +1271,30 @@ export class ContentService {
         ];
       }
       
-      // Return groups with default item count for now to avoid infinite loops
-      const groupsWithCounts = (data || []).map((group: any) => ({
-        ...group,
-        itemCount: 2, // Default count, can be updated when needed
-        items: []
+      // Return groups with actual item counts
+      const groupsWithCounts = await Promise.all((data || []).map(async (group: any) => {
+        try {
+          const { data: itemsData, error: itemsError } = await supabase
+            .from('gallery_items' as any)
+            .select('id')
+            .eq('group_id', group.id)
+            .eq('is_active', true);
+          
+          const itemCount = itemsData ? itemsData.length : 0;
+          
+          return {
+            ...group,
+            itemCount,
+            items: []
+          };
+        } catch (error) {
+          console.warn(`Failed to get item count for group ${group.id}:`, error);
+          return {
+            ...group,
+            itemCount: 0,
+            items: []
+          };
+        }
       }));
       
       return groupsWithCounts;
