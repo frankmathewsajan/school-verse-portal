@@ -236,26 +236,55 @@ export default function UnifiedGalleryEditor() {
 
     try {
       setLoading(true);
+      console.log('Uploading', newItem.images.length, 'images to group:', selectedGroup.id);
       
       const uploadPromises = newItem.images.map(async (image, index) => {
+        console.log(`Uploading image ${index + 1}/${newItem.images.length}`);
+        
         const imageUrl = await UploadService.uploadGalleryItemImage(image);
-        return ContentService.createGalleryItem({
+        if (!imageUrl) {
+          throw new Error(`Failed to upload image ${index + 1}`);
+        }
+        
+        const itemData = {
           group_id: selectedGroup.id,
           title: newItem.title || `Image ${index + 1}`,
-          description: newItem.description,
+          description: newItem.description || null,
           image_url: imageUrl,
           alt_text: newItem.altText || newItem.title || `Image ${index + 1}`,
-          display_order: index
-        });
+          display_order: index,
+          is_active: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+        
+        // Direct insert into gallery_items table
+        const { data, error } = await supabase
+          .from('gallery_items')
+          .insert(itemData)
+          .select()
+          .single();
+          
+        if (error) {
+          console.error(`Error creating gallery item ${index + 1}:`, error);
+          throw new Error(`Failed to create gallery item ${index + 1}: ${error.message}`);
+        }
+        
+        console.log(`Successfully created gallery item ${index + 1}:`, data);
+        return data;
       });
 
-      await Promise.all(uploadPromises);
+      const results = await Promise.all(uploadPromises);
+      console.log('All images uploaded successfully:', results);
 
       setMessage(`${newItem.images.length} images uploaded successfully!`);
       resetItemForm();
       await loadGalleryItems(selectedGroup.id);
+      // Also reload all gallery data to update counts
+      await loadAllGalleryData();
     } catch (err) {
-      setError('Failed to upload images');
+      console.error('Error uploading images:', err);
+      setError(`Failed to upload images: ${err instanceof Error ? err.message : 'Unknown error'}`);
     } finally {
       setLoading(false);
     }
@@ -344,12 +373,23 @@ export default function UnifiedGalleryEditor() {
 
     try {
       setLoading(true);
-      await ContentService.deleteGalleryItem(itemId);
-      setMessage('Image deleted successfully!');
-      if (selectedGroup) {
-        await loadGalleryItems(selectedGroup.id);
+      console.log('Deleting gallery group item:', itemId);
+      
+      // Use deleteGalleryGroupItem for items within gallery groups
+      const success = await ContentService.deleteGalleryGroupItem(itemId);
+      
+      if (success) {
+        setMessage('Image deleted successfully!');
+        if (selectedGroup) {
+          await loadGalleryItems(selectedGroup.id);
+          // Also reload all gallery data to update counts
+          await loadAllGalleryData();
+        }
+      } else {
+        setError('Failed to delete image');
       }
     } catch (err) {
+      console.error('Error deleting gallery group item:', err);
       setError('Failed to delete image');
     } finally {
       setLoading(false);

@@ -1448,4 +1448,26 @@ export class ContentService {
       return false;
     }
   }
+
+  static async deleteGalleryGroupItem(id: string): Promise<boolean> {
+    try {
+      const { error } = await supabase
+        .from('gallery_items' as any)
+        .delete()
+        .eq('id', id);
+      
+      if (error) {
+        console.error('Error deleting gallery group item:', error);
+        return false;
+      }
+      
+      // Dispatch event to notify components of data update
+      window.dispatchEvent(new CustomEvent('galleryUpdated'));
+      
+      return true;
+    } catch (error) {
+      console.error('Error in deleteGalleryGroupItem:', error);
+      return false;
+    }
+  }
 }
