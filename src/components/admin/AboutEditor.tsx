@@ -115,9 +115,19 @@ export function AboutEditor() {
     const currentFeatures = Array.isArray(aboutData.features) 
       ? aboutData.features 
       : [];
+    
+    // Preserve metadata while adding new feature
+    const metaFeature = currentFeatures.find((f: any) => f && typeof f === 'object' && f._meta === true);
+    const regularFeatures = currentFeatures.filter((f: any) => !(f && typeof f === 'object' && f._meta === true));
+    
+    const updatedFeatures = [...regularFeatures, { title: '', description: '' }];
+    if (metaFeature) {
+      updatedFeatures.push(metaFeature);
+    }
+    
     setAboutData({ 
       ...aboutData, 
-      features: [...currentFeatures, { title: '', description: '' }] 
+      features: updatedFeatures
     });
   };
 
@@ -125,18 +135,37 @@ export function AboutEditor() {
     const currentFeatures = Array.isArray(aboutData.features) 
       ? aboutData.features 
       : [];
-    const newFeatures = currentFeatures.filter((_, i) => i !== index);
-    setAboutData({ ...aboutData, features: newFeatures });
+    
+    // Preserve metadata while removing feature
+    const metaFeature = currentFeatures.find((f: any) => f && typeof f === 'object' && f._meta === true);
+    const regularFeatures = currentFeatures.filter((f: any) => !(f && typeof f === 'object' && f._meta === true));
+    
+    const updatedFeatures = regularFeatures.filter((_, i) => i !== index);
+    if (metaFeature) {
+      updatedFeatures.push(metaFeature);
+    }
+    
+    setAboutData({ ...aboutData, features: updatedFeatures });
   };
 
   const updateFeature = (index: number, field: 'title' | 'description', value: string) => {
     const currentFeatures = Array.isArray(aboutData.features) 
       ? aboutData.features 
       : [];
-    const newFeatures = [...currentFeatures];
-    const feature = newFeatures[index] as { title: string; description: string };
-    newFeatures[index] = { ...feature, [field]: value };
-    setAboutData({ ...aboutData, features: newFeatures });
+    
+    // Preserve metadata while updating feature
+    const metaFeature = currentFeatures.find((f: any) => f && typeof f === 'object' && f._meta === true);
+    const regularFeatures = currentFeatures.filter((f: any) => !(f && typeof f === 'object' && f._meta === true));
+    
+    const updatedFeatures = [...regularFeatures];
+    const feature = updatedFeatures[index] as { title: string; description: string };
+    updatedFeatures[index] = { ...feature, [field]: value };
+    
+    if (metaFeature) {
+      updatedFeatures.push(metaFeature);
+    }
+    
+    setAboutData({ ...aboutData, features: updatedFeatures });
   };
 
   const mainContent = Array.isArray(aboutData.main_content) 
@@ -144,10 +173,12 @@ export function AboutEditor() {
     : [];
 
   const features = Array.isArray(aboutData.features) 
-    ? aboutData.features.map(f => ({ 
-        title: (f as any)?.title || '', 
-        description: (f as any)?.description || '' 
-      }))
+    ? aboutData.features
+        .filter((f: any) => !(f && typeof f === 'object' && f._meta === true)) // Filter out metadata
+        .map(f => ({ 
+          title: (f as any)?.title || '', 
+          description: (f as any)?.description || '' 
+        }))
     : [];
 
   return (

@@ -6,7 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Camera, Search, FolderOpen, Images, Calendar, Eye, ArrowRight } from 'lucide-react';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { Camera, Search, FolderOpen, Images, Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { ContentService } from '@/services/contentService';
 import type { Database } from '@/integrations/supabase/types';
@@ -36,8 +37,11 @@ const Gallery = () => {
   const [galleryGroups, setGalleryGroups] = useState<GalleryGroupWithItems[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedGroup, setSelectedGroup] = useState<GalleryGroupWithItems | null>(null);
-  const [selectedGroupItems, setSelectedGroupItems] = useState<any[]>([]);
+  
+  // Modal state for Instagram-style image viewer
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [modalImages, setModalImages] = useState<any[]>([]);
 
   // Load gallery data from database
   const loadGalleryData = async () => {
@@ -81,8 +85,9 @@ const Gallery = () => {
       setLoading(true);
       setError(null);
       const items = await ContentService.getGalleryItemsByGroup(group.id);
-      setSelectedGroup(group);
-      setSelectedGroupItems(items);
+      
+      // Directly open the modal with the images instead of showing individual group view
+      openImageModal(0, items);
     } catch (err) {
       console.error('Error loading group items:', err);
       setError('Failed to load group images');
@@ -91,10 +96,48 @@ const Gallery = () => {
     }
   };
 
-  const handleBackToGroups = () => {
-    setSelectedGroup(null);
-    setSelectedGroupItems([]);
+  // Modal functions for Instagram-style image viewer
+  const openImageModal = (imageIndex: number, images: any[]) => {
+    setCurrentImageIndex(imageIndex);
+    setModalImages(images);
+    setIsModalOpen(true);
   };
+
+  const closeImageModal = () => {
+    setIsModalOpen(false);
+    setCurrentImageIndex(0);
+    setModalImages([]);
+  };
+
+  const goToPreviousImage = () => {
+    setCurrentImageIndex((prev) => 
+      prev === 0 ? modalImages.length - 1 : prev - 1
+    );
+  };
+
+  const goToNextImage = () => {
+    setCurrentImageIndex((prev) => 
+      prev === modalImages.length - 1 ? 0 : prev + 1
+    );
+  };
+
+  // Handle keyboard navigation
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (!isModalOpen) return;
+      
+      if (e.key === 'ArrowLeft') {
+        goToPreviousImage();
+      } else if (e.key === 'ArrowRight') {
+        goToNextImage();
+      } else if (e.key === 'Escape') {
+        closeImageModal();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [isModalOpen, modalImages.length]);
 
   // Filter gallery items based on search query and selected category
   const filteredGallery = galleryData.filter(item => {
@@ -122,8 +165,8 @@ const Gallery = () => {
     });
   };
 
-  // Show loading state only during initial load or when loading group items
-  if (loading && !selectedGroup && galleryData.length === 0) {
+  // Show loading state only during initial load
+  if (loading && galleryData.length === 0 && galleryGroups.length === 0) {
     return (
       <MainLayout>
         <section className="py-16 bg-gradient-to-br from-primary/10 to-secondary/5">
@@ -219,139 +262,60 @@ const Gallery = () => {
 
             {/* Events Tab Content */}
             <TabsContent value="events" className="mt-8">
-              {selectedGroup ? (
-                // Individual Group View
-                <div className="space-y-6">
-                  <div className="flex items-center justify-between">
-                    <Button
-                      variant="outline"
-                      onClick={handleBackToGroups}
-                      className="flex items-center gap-2"
+              {filteredGroups.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredGroups.map((group) => (
+                    <Card 
+                      key={group.id} 
+                      className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
+                      onClick={() => handleGroupClick(group)}
                     >
-                      <ArrowRight className="w-4 h-4 rotate-180" />
-                      Back to Events
-                    </Button>
-                    <Badge variant="secondary">
-                      {selectedGroupItems.length} images
-                    </Badge>
-                  </div>
-
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="flex items-center gap-2">
-                        <FolderOpen className="w-5 h-5" />
-                        {selectedGroup.title}
-                      </CardTitle>
-                      <CardDescription>
-                        {selectedGroup.description}
-                      </CardDescription>
-                      <div className="flex items-center gap-4 text-sm text-gray-500 mt-2">
-                        <span>Category: {selectedGroup.category}</span>
-                        <span>Date: {formatDate(selectedGroup.date_taken)}</span>
+                      <div className="aspect-[4/3] relative">
+                        {group.cover_image_url ? (
+                          <img
+                            src={group.cover_image_url}
+                            alt={group.title}
+                            className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                            <FolderOpen className="w-12 h-12 text-gray-400" />
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                        <div className="absolute bottom-4 left-4 right-4 text-white">
+                          <h3 className="font-semibold text-lg mb-1">{group.title}</h3>
+                          <div className="flex items-center gap-2 text-sm opacity-90">
+                            <Images className="w-4 h-4" />
+                            <span>{group.itemCount} images</span>
+                          </div>
+                        </div>
                       </div>
-                    </CardHeader>
-                    <CardContent>
-                      {loading ? (
-                        <div className="text-center py-12">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-                          <p className="text-muted-foreground">Loading images...</p>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge variant="secondary">{group.category}</Badge>
+                          <span className="text-sm text-gray-500 flex items-center gap-1">
+                            <Calendar className="w-4 h-4" />
+                            {formatDate(group.date_taken)}
+                          </span>
                         </div>
-                      ) : selectedGroupItems.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                          {selectedGroupItems.map((item) => (
-                            <div 
-                              key={item.id} 
-                              className="group relative aspect-square rounded-lg overflow-hidden card-hover"
-                            >
-                              <img 
-                                src={item.image_url} 
-                                alt={item.alt_text || item.title || 'Gallery image'}
-                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                              />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent flex flex-col justify-end p-4 text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                                {item.title && (
-                                  <h4 className="text-sm font-semibold">{item.title}</h4>
-                                )}
-                                {item.description && (
-                                  <p className="text-xs text-white/80 mt-1">{item.description}</p>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="text-center py-12">
-                          <Images className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                          <h3 className="text-xl font-semibold text-gray-600 mb-2">No Images Yet</h3>
-                          <p className="text-gray-500">
-                            Images will appear here once they are uploaded to this event.
+                        {group.description && (
+                          <p className="text-sm text-gray-600 line-clamp-2">
+                            {group.description}
                           </p>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
               ) : (
-                // Groups List View
-                filteredGroups.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredGroups.map((group) => (
-                      <Card key={group.id} className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer">
-                        <div className="aspect-[4/3] relative">
-                          {group.cover_image_url ? (
-                            <img
-                              src={group.cover_image_url}
-                              alt={group.title}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                              <FolderOpen className="w-12 h-12 text-gray-400" />
-                            </div>
-                          )}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                          <div className="absolute bottom-4 left-4 right-4 text-white">
-                            <h3 className="font-semibold text-lg mb-1">{group.title}</h3>
-                            <div className="flex items-center gap-2 text-sm opacity-90">
-                              <Images className="w-4 h-4" />
-                              <span>{group.itemCount} images</span>
-                            </div>
-                          </div>
-                        </div>
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <Badge variant="secondary">{group.category}</Badge>
-                            <span className="text-sm text-gray-500 flex items-center gap-1">
-                              <Calendar className="w-4 h-4" />
-                              {formatDate(group.date_taken)}
-                            </span>
-                          </div>
-                          {group.description && (
-                            <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                              {group.description}
-                            </p>
-                          )}
-                          <Button
-                            onClick={() => handleGroupClick(group)}
-                            className="w-full"
-                            variant="outline"
-                          >
-                            <Eye className="w-4 h-4 mr-2" />
-                            View Gallery
-                          </Button>
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12">
-                    <FolderOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold text-gray-600 mb-2">No Events Found</h3>
-                    <p className="text-gray-500">
-                      {searchQuery ? 'Try adjusting your search criteria' : 'Events will appear here once they are created'}
-                    </p>
-                  </div>
-                )
+                <div className="text-center py-12">
+                  <FolderOpen className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-gray-600 mb-2">No Events Found</h3>
+                  <p className="text-gray-500">
+                    {searchQuery ? 'Try adjusting your search criteria' : 'Events will appear here once they are created'}
+                  </p>
+                </div>
               )}
             </TabsContent>
 
@@ -433,6 +397,87 @@ const Gallery = () => {
           </Tabs>
         </div>
       </section>
+
+      {/* Instagram-style Image Modal */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent 
+          className="max-w-4xl w-full h-[80vh] p-0 bg-white border border-gray-200"
+          aria-describedby={undefined}
+        >
+          <div className="relative w-full h-full flex items-center justify-center bg-gray-50">
+            {/* Navigation buttons */}
+            {modalImages.length > 1 && (
+              <>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-white/90 text-gray-700 hover:bg-white hover:text-gray-900 border-gray-300 shadow-lg rounded-full w-12 h-12"
+                  onClick={goToPreviousImage}
+                >
+                  <ChevronLeft className="h-6 w-6" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-white/90 text-gray-700 hover:bg-white hover:text-gray-900 border-gray-300 shadow-lg rounded-full w-12 h-12"
+                  onClick={goToNextImage}
+                >
+                  <ChevronRight className="h-6 w-6" />
+                </Button>
+              </>
+            )}
+
+            {/* Current image */}
+            {modalImages[currentImageIndex] && (
+              <div className="w-full h-full flex flex-col">
+                <div className="flex-1 flex items-center justify-center p-6">
+                  <img
+                    src={modalImages[currentImageIndex].image_url}
+                    alt={modalImages[currentImageIndex].alt_text || modalImages[currentImageIndex].title || 'Gallery image'}
+                    className="max-w-full max-h-full object-contain rounded-lg shadow-sm"
+                  />
+                </div>
+                
+                {/* Image info */}
+                {(modalImages[currentImageIndex].title || modalImages[currentImageIndex].description) && (
+                  <div className="bg-white border-t border-gray-200 p-4">
+                    <div className="max-w-3xl mx-auto">
+                      {modalImages[currentImageIndex].title && (
+                        <h3 className="text-lg font-semibold mb-2 text-gray-900">
+                          {modalImages[currentImageIndex].title}
+                        </h3>
+                      )}
+                      {modalImages[currentImageIndex].description && (
+                        <p className="text-gray-600 text-sm">
+                          {modalImages[currentImageIndex].description}
+                        </p>
+                      )}
+                      {modalImages.length > 1 && (
+                        <div className="flex items-center justify-between mt-3">
+                          <span className="text-gray-500 text-sm">
+                            {currentImageIndex + 1} of {modalImages.length}
+                          </span>
+                          <div className="flex gap-1">
+                            {modalImages.map((_, index) => (
+                              <button
+                                key={index}
+                                className={`w-2 h-2 rounded-full transition-colors ${
+                                  index === currentImageIndex ? 'bg-gray-600' : 'bg-gray-300'
+                                }`}
+                                onClick={() => setCurrentImageIndex(index)}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </MainLayout>
   );
 };

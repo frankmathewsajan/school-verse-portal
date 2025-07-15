@@ -58,24 +58,31 @@ export function AboutSection() {
     loadData();
   }, []);
 
-  const features = Array.isArray(aboutData.features) ? aboutData.features : [
-    {
-      title: "Founded in 1985",
-      description: "With decades of educational excellence and a strong foundation in values-based learning"
-    },
-    {
-      title: "Diverse Community",
-      description: "Creating an inclusive environment where every student feels valued and empowered"
-    },
-    {
-      title: "Comprehensive Curriculum",
-      description: "Balancing academic rigor with holistic development for well-rounded education"
-    },
-    {
-      title: "Academic Excellence",
-      description: "Consistent record of outstanding achievements in academics and extracurriculars"
-    }
-  ];
+  const features = Array.isArray(aboutData.features) 
+    ? aboutData.features
+        .filter((f: any) => !(f && typeof f === 'object' && f._meta === true)) // Filter out metadata
+        .map(f => ({ 
+          title: (f as any)?.title || '', 
+          description: (f as any)?.description || '' 
+        }))
+    : [
+        {
+          title: "Founded in 1985",
+          description: "With decades of educational excellence and a strong foundation in values-based learning"
+        },
+        {
+          title: "Diverse Community",
+          description: "Creating an inclusive environment where every student feels valued and empowered"
+        },
+        {
+          title: "Comprehensive Curriculum",
+          description: "Balancing academic rigor with holistic development for well-rounded education"
+        },
+        {
+          title: "Academic Excellence",
+          description: "Consistent record of outstanding achievements in academics and extracurriculars"
+        }
+      ];
 
   const featureIcons = [
     <Building className="h-10 w-10 text-primary" />,

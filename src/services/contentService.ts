@@ -125,7 +125,20 @@ export class ContentService {
         return null;
       }
       
-      return data;
+      // Extract about_image_url from features metadata if it exists
+      let aboutImageUrl = '';
+      if (data && Array.isArray(data.features)) {
+        const metaFeature = data.features.find((f: any) => f && typeof f === 'object' && f._meta === true);
+        if (metaFeature && typeof metaFeature === 'object' && (metaFeature as any).about_image_url) {
+          aboutImageUrl = (metaFeature as any).about_image_url;
+        }
+      }
+      
+      // Return data with about_image_url extracted
+      return {
+        ...data,
+        about_image_url: aboutImageUrl
+      } as any;
     } catch (error) {
       console.error('Error in getAboutSection:', error);
       return null;
@@ -134,29 +147,59 @@ export class ContentService {
 
   static async updateAboutSection(aboutData: Partial<AboutSection>): Promise<boolean> {
     try {
+      console.log('Updating about section with data:', aboutData);
+      
+      // Handle about_image_url by storing it in a special way
+      let features = aboutData.features || [];
+      const aboutImageUrl = (aboutData as any).about_image_url;
+      
+      if (aboutImageUrl !== undefined) {
+        // Store about image URL in features metadata
+        if (Array.isArray(features)) {
+          features = [...features];
+        }
+        
+        // Add or update the special _meta feature for storing about image URL
+        const featuresArray = Array.isArray(features) ? features : [];
+        const metaIndex = featuresArray.findIndex((f: any) => f._meta === true);
+        
+        if (metaIndex >= 0) {
+          featuresArray[metaIndex] = { _meta: true, about_image_url: aboutImageUrl };
+        } else {
+          featuresArray.push({ _meta: true, about_image_url: aboutImageUrl });
+        }
+        
+        features = featuresArray;
+      }
+
+      const updateData = {
+        id: 'main',
+        title: aboutData.title || 'About Our School',
+        subtitle: aboutData.subtitle || null,
+        main_content: aboutData.main_content || null,
+        principal_message: aboutData.principal_message || null,
+        principal_name: aboutData.principal_name || null,
+        principal_title: aboutData.principal_title || null,
+        principal_image_url: aboutData.principal_image_url || null,
+        school_founded_year: aboutData.school_founded_year || null,
+        school_description: aboutData.school_description || null,
+        features: features,
+        created_at: aboutData.created_at || new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      console.log('Final update data:', updateData);
+
       const { error } = await supabase
         .from('about_section')
-        .upsert({
-          id: 'main',
-          title: aboutData.title || 'About Our School',
-          subtitle: aboutData.subtitle || null,
-          main_content: aboutData.main_content || null,
-          principal_message: aboutData.principal_message || null,
-          principal_name: aboutData.principal_name || null,
-          principal_title: aboutData.principal_title || null,
-          principal_image_url: aboutData.principal_image_url || null,
-          school_founded_year: aboutData.school_founded_year || null,
-          school_description: aboutData.school_description || null,
-          features: aboutData.features || null,
-          created_at: aboutData.created_at || new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        });
+        .upsert(updateData);
       
       if (error) {
         console.error('Error updating about section:', error);
         return false;
       }
       
+      console.log('About section updated successfully');
       return true;
     } catch (error) {
       console.error('Error in updateAboutSection:', error);
