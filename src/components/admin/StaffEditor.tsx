@@ -34,6 +34,7 @@ export function StaffEditor() {
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const { toast } = useToast();
+  const [activeLang, setActiveLang] = useState<'en' | 'hi'>('en');
 
   useEffect(() => {
     loadStaff();

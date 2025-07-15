@@ -11,7 +11,7 @@ import type { Database } from '@/integrations/supabase/types';
 
 type LearningMaterial = Database['public']['Tables']['learning_materials']['Row'];
 
-export function MaterialsPreview() {
+export function MaterialsPreview({ title }: { title?: string }) {
   const [materials, setMaterials] = useState<LearningMaterial[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -31,8 +31,11 @@ export function MaterialsPreview() {
   }, []);
 
   return (
-    <section className="py-16 bg-gradient-to-br from-primary/5 to-secondary/5">
+    <section className="py-12">
       <div className="container mx-auto px-4">
+        <h2 className="text-3xl font-bold mb-6">
+          {title || "Materials Preview"}
+        </h2>
         <SectionTitle 
           title="Learning Materials" 
           subtitle="Access educational resources, study guides, and supplementary materials to support your learning journey from Grade 1 to 12"

@@ -10,7 +10,7 @@ import type { Database } from '@/integrations/supabase/types';
 
 type Announcement = Database['public']['Tables']['announcements']['Row'];
 
-export function NotificationSection() {
+export function NotificationSection({ title }: { title?: string }) {
   const [notifications, setNotifications] = useState<Announcement[]>([]);
 
   useEffect(() => {
@@ -31,8 +31,11 @@ export function NotificationSection() {
   };
 
   return (
-    <section className="py-16 bg-muted/50">
+    <section className="py-12">
       <div className="container mx-auto px-4">
+        <h2 className="text-3xl font-bold mb-6">
+          {title || "Notifications"}
+        </h2>
         <SectionTitle 
           title="Latest Announcements" 
           subtitle="Stay updated with the latest information and announcements from our school"

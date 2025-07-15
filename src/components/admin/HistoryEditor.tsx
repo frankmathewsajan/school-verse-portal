@@ -22,12 +22,16 @@ interface HistoryData {
 }
 
 export function HistoryEditor() {
-  const [historyData, setHistoryData] = useState<HistoryData>({
+  const [activeLang, setActiveLang] = useState<'en' | 'hi'>('en');
+  const [historyData, setHistoryData] = useState<any>({
     id: '',
-    title: 'Our History',
-    subtitle: 'Four decades of educational excellence and community impact',
+    title_en: 'Our History',
+    title_hi: '',
+    subtitle_en: 'Four decades of educational excellence and community impact',
+    subtitle_hi: '',
     main_image_url: '',
-    content_paragraphs: []
+    content_paragraphs_en: [],
+    content_paragraphs_hi: [],
   });
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -36,6 +40,7 @@ export function HistoryEditor() {
 
   useEffect(() => {
     loadHistoryData();
+    // eslint-disable-next-line
   }, []);
 
   const loadHistoryData = async () => {
@@ -43,20 +48,13 @@ export function HistoryEditor() {
       setLoading(true);
       setLoadError(null);
       const data = await ContentService.getSchoolHistory();
-      
       if (data) {
         setHistoryData({
-          id: data.id,
-          title: data.title,
-          subtitle: data.subtitle || '',
-          main_image_url: data.main_image_url || '',
-          content_paragraphs: Array.isArray(data.content_paragraphs) 
-            ? data.content_paragraphs 
-            : []
+          ...historyData,
+          ...data,
         });
       }
     } catch (error) {
-      console.error('Error loading history data:', error);
       setLoadError('Failed to load history data. Please try again.');
     } finally {
       setLoading(false);
@@ -67,67 +65,62 @@ export function HistoryEditor() {
     try {
       setSaving(true);
       const success = await ContentService.updateSchoolHistory(historyData);
-      
       if (success) {
         toast({
-          title: "Success",
-          description: "History section updated successfully",
+          title: 'Success',
+          description: 'History section updated successfully',
         });
       } else {
         toast({
-          title: "Error",
-          description: "Failed to update history section",
-          variant: "destructive"
+          title: 'Error',
+          description: 'Failed to update history section',
+          variant: 'destructive',
         });
       }
     } catch (error) {
-      console.error('Error saving history:', error);
       toast({
-        title: "Error",
-        description: "An error occurred while saving",
-        variant: "destructive"
+        title: 'Error',
+        description: 'An error occurred while saving',
+        variant: 'destructive',
       });
     } finally {
       setSaving(false);
     }
   };
 
+  const langField = (field: string) => (activeLang === 'en' ? `${field}_en` : `${field}_hi`);
+  const paragraphs = historyData[langField('content_paragraphs')] || [];
+
   const addParagraph = () => {
-    setHistoryData(prev => ({
-      ...prev,
-      content_paragraphs: [...prev.content_paragraphs, '']
-    }));
+    setHistoryData({
+      ...historyData,
+      [langField('content_paragraphs')]: [...paragraphs, ''],
+    });
   };
-
   const updateParagraph = (index: number, value: string) => {
-    setHistoryData(prev => ({
-      ...prev,
-      content_paragraphs: prev.content_paragraphs.map((p, i) => 
-        i === index ? value : p
-      )
-    }));
+    const newParagraphs = [...paragraphs];
+    newParagraphs[index] = value;
+    setHistoryData({
+      ...historyData,
+      [langField('content_paragraphs')]: newParagraphs,
+    });
   };
-
   const deleteParagraph = (index: number) => {
-    setHistoryData(prev => ({
-      ...prev,
-      content_paragraphs: prev.content_paragraphs.filter((_, i) => i !== index)
-    }));
+    setHistoryData({
+      ...historyData,
+      [langField('content_paragraphs')]: paragraphs.filter((_: any, i: number) => i !== index),
+    });
   };
-
   const moveParagraph = (index: number, direction: 'up' | 'down') => {
     const newIndex = direction === 'up' ? index - 1 : index + 1;
-    if (newIndex < 0 || newIndex >= historyData.content_paragraphs.length) return;
-
-    setHistoryData(prev => {
-      const newParagraphs = [...prev.content_paragraphs];
-      const temp = newParagraphs[index];
-      newParagraphs[index] = newParagraphs[newIndex];
-      newParagraphs[newIndex] = temp;
-      return {
-        ...prev,
-        content_paragraphs: newParagraphs
-      };
+    if (newIndex < 0 || newIndex >= paragraphs.length) return;
+    const newParagraphs = [...paragraphs];
+    const temp = newParagraphs[index];
+    newParagraphs[index] = newParagraphs[newIndex];
+    newParagraphs[newIndex] = temp;
+    setHistoryData({
+      ...historyData,
+      [langField('content_paragraphs')]: newParagraphs,
     });
   };
 
@@ -161,6 +154,21 @@ export function HistoryEditor() {
 
   return (
     <div className="space-y-6">
+      {/* Language Toggle */}
+      <div className="flex gap-2 mb-4">
+        <button
+          className={`px-4 py-2 rounded ${activeLang === 'en' ? 'bg-primary text-white' : 'bg-gray-200'}`}
+          onClick={() => setActiveLang('en')}
+        >
+          English
+        </button>
+        <button
+          className={`px-4 py-2 rounded ${activeLang === 'hi' ? 'bg-primary text-white' : 'bg-gray-200'}`}
+          onClick={() => setActiveLang('hi')}
+        >
+          हिंदी
+        </button>
+      </div>
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
@@ -180,160 +188,72 @@ export function HistoryEditor() {
           {saving ? 'Saving...' : 'Save Changes'}
         </Button>
       </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Basic Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Basic Information
-            </CardTitle>
-            <CardDescription>
-              Edit the main title and subtitle for the history section
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="title">Section Title</Label>
-              <Input
-                id="title"
-                value={historyData.title}
-                onChange={(e) => setHistoryData(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="e.g., Our History"
-              />
-            </div>
-            <div>
-              <Label htmlFor="subtitle">Subtitle</Label>
-              <Input
-                id="subtitle"
-                value={historyData.subtitle}
-                onChange={(e) => setHistoryData(prev => ({ ...prev, subtitle: e.target.value }))}
-                placeholder="e.g., Four decades of educational excellence"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Image Upload */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Image className="h-5 w-5" />
-              History Image
-            </CardTitle>
-            <CardDescription>
-              Upload or change the main image for the history section
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ImageUpload
-              label="History Image"
-              value={historyData.main_image_url}
-              onChange={(url) => setHistoryData(prev => ({ ...prev, main_image_url: url }))}
-              folder="history"
-            />
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="history-title">Section Title ({activeLang === 'en' ? 'English' : 'Hindi'})</Label>
+          <Input
+            id="history-title"
+            value={historyData[langField('title')] || ''}
+            onChange={(e) => setHistoryData({ ...historyData, [langField('title')]: e.target.value })}
+            placeholder={activeLang === 'en' ? 'Our History' : 'हमारा इतिहास'}
+          />
+        </div>
+        <div>
+          <Label htmlFor="history-subtitle">Subtitle ({activeLang === 'en' ? 'English' : 'Hindi'})</Label>
+          <Input
+            id="history-subtitle"
+            value={historyData[langField('subtitle')] || ''}
+            onChange={(e) => setHistoryData({ ...historyData, [langField('subtitle')]: e.target.value })}
+            placeholder={activeLang === 'en' ? 'Four decades of educational excellence...' : 'शैक्षिक उत्कृष्टता के चार दशक...'}
+          />
+        </div>
       </div>
-
-      {/* Content Paragraphs */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
-            History Content
-          </CardTitle>
-          <CardDescription>
-            Add and edit paragraphs that tell your school's story
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {historyData.content_paragraphs.map((paragraph, index) => (
-            <div key={index} className="flex gap-2">
-              <div className="flex flex-col gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => moveParagraph(index, 'up')}
-                  disabled={index === 0}
-                  className="h-8 w-8 p-0"
-                >
-                  <GripVertical className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => moveParagraph(index, 'down')}
-                  disabled={index === historyData.content_paragraphs.length - 1}
-                  className="h-8 w-8 p-0"
-                >
-                  <GripVertical className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="flex-1">
-                <Textarea
-                  value={paragraph}
-                  onChange={(e) => updateParagraph(index, e.target.value)}
-                  placeholder={`Paragraph ${index + 1}...`}
-                  rows={3}
-                />
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => deleteParagraph(index)}
-                className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
-          
-          <Button
-            variant="outline"
-            onClick={addParagraph}
-            className="w-full flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Add Paragraph
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Preview */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Preview</CardTitle>
-          <CardDescription>
-            This is how the history section will appear on the About page
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {historyData.main_image_url && (
-              <div className="relative rounded-lg overflow-hidden h-[200px]">
-                <img 
-                  src={historyData.main_image_url} 
-                  alt="School history"
-                  className="w-full h-full object-cover"
-                />
-              </div>
-            )}
-            <div>
-              <h3 className="text-xl font-semibold mb-2">{historyData.title}</h3>
-              <p className="text-muted-foreground mb-4">{historyData.subtitle}</p>
-              <div className="space-y-3">
-                {historyData.content_paragraphs.map((paragraph, index) => (
-                  <p key={index} className="text-sm text-muted-foreground">
-                    {paragraph}
-                  </p>
-                ))}
-              </div>
-            </div>
+      <div>
+        <Label>Main Content Paragraphs ({activeLang === 'en' ? 'English' : 'Hindi'})</Label>
+        <Button type="button" variant="outline" size="sm" onClick={addParagraph}>
+          <Plus className="w-4 h-4 mr-2" />
+          Add Paragraph
+        </Button>
+        {paragraphs.map((paragraph: string, index: number) => (
+          <div key={index} className="flex gap-2 items-start mt-2">
+            <Textarea
+              value={paragraph}
+              onChange={(e) => updateParagraph(index, e.target.value)}
+              placeholder={activeLang === 'en' ? 'Enter paragraph content' : 'अनुच्छेद सामग्री दर्ज करें'}
+              className="flex-1"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => deleteParagraph(index)}
+              className="mt-1"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => moveParagraph(index, 'up')}
+              className="mt-1"
+              disabled={index === 0}
+            >
+              ↑
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => moveParagraph(index, 'down')}
+              className="mt-1"
+              disabled={index === paragraphs.length - 1}
+            >
+              ↓
+            </Button>
           </div>
-        </CardContent>
-      </Card>
+        ))}
+      </div>
     </div>
   );
 }

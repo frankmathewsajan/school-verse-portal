@@ -61,6 +61,7 @@ const GALLERY_CATEGORIES = [
 ];
 
 export default function UnifiedGalleryEditor() {
+  const [activeLang, setActiveLang] = useState<'en' | 'hi'>('en');
   // Gallery Groups State
   const [galleryGroups, setGalleryGroups] = useState<GalleryGroupWithItems[]>([]);
   const [selectedGroup, setSelectedGroup] = useState<GalleryGroupWithItems | null>(null);

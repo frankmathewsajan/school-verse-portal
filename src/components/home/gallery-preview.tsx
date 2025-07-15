@@ -17,7 +17,7 @@ interface GalleryGroupWithItems extends GalleryGroup {
   itemCount: number;
 }
 
-export function GalleryPreview() {
+export function GalleryPreview({ title }: { title?: string }) {
   const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [galleryGroups, setGalleryGroups] = useState<GalleryGroupWithItems[]>([]);
 
@@ -88,8 +88,11 @@ export function GalleryPreview() {
   const displayItems = galleryItems.length > 0 ? galleryItems : defaultGalleryItems;
 
   return (
-    <section className="py-16">
+    <section className="py-12">
       <div className="container mx-auto px-4">
+        <h2 className="text-3xl font-bold mb-6">
+          {title || "Gallery Preview"}
+        </h2>
         <SectionTitle 
           title="School Life Gallery" 
           subtitle="Explore moments from our vibrant school community through our curated photo gallery"

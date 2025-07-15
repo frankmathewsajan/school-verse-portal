@@ -24,6 +24,7 @@ export function NotificationEditor() {
     category: '',
     type: ''
   });
+  const [activeLang, setActiveLang] = useState<'en' | 'hi'>('en');
 
   const categories = ['academic', 'event', 'meeting', 'exam', 'holiday', 'announcement', 'sports', 'cultural'];
 
@@ -151,6 +152,10 @@ export function NotificationEditor() {
     });
   };
 
+  const langField = (field: string) => {
+    return `${field}_${activeLang}`;
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -159,13 +164,17 @@ export function NotificationEditor() {
           <CardDescription>Create new school announcements and notifications</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <div className="flex items-center gap-2 mb-4">
+            <Button variant={activeLang === 'en' ? 'default' : 'outline'} onClick={() => setActiveLang('en')}>English</Button>
+            <Button variant={activeLang === 'hi' ? 'default' : 'outline'} onClick={() => setActiveLang('hi')}>Hindi</Button>
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="new-title">Title</Label>
               <Input
                 id="new-title"
-                value={newNotification.title}
-                onChange={(e) => setNewNotification({ ...newNotification, title: e.target.value })}
+                value={newNotification[langField('title')] || ''}
+                onChange={(e) => setNewNotification({ ...newNotification, [langField('title')]: e.target.value })}
                 placeholder="Enter announcement title"
                 className="mt-1"
               />
@@ -192,8 +201,8 @@ export function NotificationEditor() {
             <Label htmlFor="new-content">Content</Label>
             <Textarea
               id="new-content"
-              value={newNotification.content}
-              onChange={(e) => setNewNotification({ ...newNotification, content: e.target.value })}
+              value={newNotification[langField('content')] || ''}
+              onChange={(e) => setNewNotification({ ...newNotification, [langField('content')]: e.target.value })}
               placeholder="Enter announcement content"
               className="mt-1"
               rows={4}
@@ -228,8 +237,8 @@ export function NotificationEditor() {
                         <div>
                           <Label>Title</Label>
                           <Input
-                            value={editingNotification.title}
-                            onChange={(e) => setEditingNotification({ ...editingNotification, title: e.target.value })}
+                            value={editingNotification[langField('title')] || ''}
+                            onChange={(e) => setEditingNotification({ ...editingNotification, [langField('title')]: e.target.value })}
                             className="mt-1"
                           />
                         </div>
@@ -256,8 +265,8 @@ export function NotificationEditor() {
                       <div>
                         <Label>Content</Label>
                         <Textarea
-                          value={editingNotification.content}
-                          onChange={(e) => setEditingNotification({ ...editingNotification, content: e.target.value })}
+                          value={editingNotification[langField('content')] || ''}
+                          onChange={(e) => setEditingNotification({ ...editingNotification, [langField('content')]: e.target.value })}
                           className="mt-1"
                           rows={4}
                         />

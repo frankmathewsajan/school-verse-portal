@@ -6,7 +6,7 @@ import type { Database } from '@/integrations/supabase/types';
 
 type HeroSection = Database['public']['Tables']['hero_section']['Row'];
 
-export function HeroSection() {
+export function HeroSection({ title }: { title?: string }) {
   const [heroData, setHeroData] = useState<HeroSection>({
     id: 'main',
     title: 'Welcome to St. G. D. Convent School',
@@ -41,7 +41,7 @@ export function HeroSection() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           <div className="space-y-6 animate-fade-in">
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-foreground">
-              {heroData.title}
+              {title || heroData.title}
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl">
               {heroData.subtitle}
