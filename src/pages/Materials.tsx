@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Download, FileText, Search, SlidersHorizontal, Book, BookOpen } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ContentService } from '@/services/contentService';
+import { downloadFile } from '@/lib/utils';
 import type { Database } from '@/integrations/supabase/types';
 
 type LearningMaterial = Database['public']['Tables']['learning_materials']['Row'];
@@ -35,6 +36,17 @@ const Materials = () => {
     };
     loadMaterials();
   }, []);
+
+  const handleDownload = (material: LearningMaterial) => {
+    if (!material.file_url) {
+      console.error('No file URL available for download');
+      return;
+    }
+    
+    // Create a filename from the material title and file type
+    const filename = `${material.title}.${material.file_type || 'file'}`;
+    downloadFile(material.file_url, filename);
+  };
   
   // Define grade level groups for filtering
   const gradeGroups = [
@@ -209,7 +221,12 @@ const Materials = () => {
                     <span className="text-xs text-muted-foreground">
                       Uploaded: {material.created_at ? new Date(material.created_at).toLocaleDateString() : 'Unknown'}
                     </span>
-                    <Button variant="ghost" size="sm" className="gap-1">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="gap-1"
+                      onClick={() => handleDownload(material)}
+                    >
                       <Download className="h-4 w-4" />
                       Download
                     </Button>

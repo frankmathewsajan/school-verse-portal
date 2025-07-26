@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Link } from 'react-router-dom';
 import { Badge } from '@/components/ui/badge';
 import { ContentService } from '@/services/contentService';
+import { downloadFile } from '@/lib/utils';
 import type { Database } from '@/integrations/supabase/types';
 
 type LearningMaterial = Database['public']['Tables']['learning_materials']['Row'];
@@ -29,6 +30,17 @@ export function MaterialsPreview() {
     };
     loadMaterials();
   }, []);
+
+  const handleDownload = (material: LearningMaterial) => {
+    if (!material.file_url) {
+      console.error('No file URL available for download');
+      return;
+    }
+    
+    // Create a filename from the material title and file type
+    const filename = `${material.title}.${material.file_type || 'file'}`;
+    downloadFile(material.file_url, filename);
+  };
 
   return (
     <section className="py-16 bg-gradient-to-br from-primary/5 to-secondary/5">
@@ -80,7 +92,12 @@ export function MaterialsPreview() {
                   </div>
                 </CardContent>
                 <CardFooter className="flex justify-between">
-                  <Button variant="ghost" size="sm" className="gap-1">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="gap-1"
+                    onClick={() => handleDownload(material)}
+                  >
                     <Download className="h-4 w-4" />
                     Download
                   </Button>

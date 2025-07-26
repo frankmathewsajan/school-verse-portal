@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Save, Plus, Trash2, Edit, Loader2, Download, Upload, Link } from 'lucide-react';
 import { ContentService } from '@/services/contentService';
 import { UploadService } from '@/services/uploadService';
+import { downloadFile } from '@/lib/utils';
 import type { Database } from '@/integrations/supabase/types';
 
 type LearningMaterial = Database['public']['Tables']['learning_materials']['Row'];
@@ -194,6 +195,20 @@ export function MaterialsEditor() {
   const subjects = ['Mathematics', 'Science', 'English', 'History', 'Geography', 'Physics', 'Chemistry', 'Biology', 'Computer Science', 'Other'];
   const grades = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '1-5', '6-8', '9-10', '11-12'];
   const fileTypes = ['PDF', 'DOC', 'DOCX', 'PPT', 'PPTX', 'XLS', 'XLSX', 'ZIP', 'Other'];
+
+  const handleDownloadMaterial = (material: LearningMaterial) => {
+    if (!material.file_url) {
+      toast({
+        title: "Download failed",
+        description: "No file URL available for download",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const filename = `${material.title}.${material.file_type || 'file'}`;
+    downloadFile(material.file_url, filename);
+  };
 
   return (
     <div className="space-y-6">
@@ -398,7 +413,7 @@ export function MaterialsEditor() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => window.open(material.file_url, '_blank')}
+                        onClick={() => handleDownloadMaterial(material)}
                       >
                         <Download className="w-4 h-4 mr-1" />
                         Download
