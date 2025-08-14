@@ -174,7 +174,7 @@ export class ContentService {
 
       const updateData = {
         id: 'main',
-        title: aboutData.title || 'About Our School',
+        title: aboutData.title || '',
         subtitle: aboutData.subtitle || null,
         main_content: aboutData.main_content || null,
         principal_message: aboutData.principal_message || null,
@@ -233,7 +233,7 @@ export class ContentService {
         .from('vision_section')
         .upsert({
           id: 'main',
-          title: visionData.title || 'Our Vision & Mission',
+          title: visionData.title || '',
           subtitle: visionData.subtitle || null,
           main_content: visionData.main_content || null,
           principal_message: visionData.principal_message || null,

@@ -86,7 +86,45 @@ const About = () => {
             </TabsList>
             
             <TabsContent value="history">
-              {historyData ? (
+              {loading ? (
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                  {/* Image placeholder */}
+                  <div className="relative rounded-lg overflow-hidden h-[400px] bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-gray-400 text-sm font-medium">Content loading...</div>
+                    </div>
+                  </div>
+                  {/* Content placeholder */}
+                  <div className="space-y-6">
+                    {/* Title placeholder */}
+                    <div className="space-y-3">
+                      <div className="h-8 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse rounded relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
+                      </div>
+                      <div className="h-6 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse rounded w-3/4 relative overflow-hidden">
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
+                      </div>
+                    </div>
+                    {/* Paragraph placeholders */}
+                    <div className="space-y-4">
+                      {[...Array(4)].map((_, index) => (
+                        <div key={index} className="space-y-2">
+                          <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse rounded relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
+                          </div>
+                          <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse rounded relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
+                          </div>
+                          <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse rounded w-5/6 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ) : historyData && (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                   {historyData.main_image_url && (
                     <div className="relative rounded-lg overflow-hidden h-[400px]">
@@ -109,10 +147,6 @@ const About = () => {
                     </div>
                   </div>
                 </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">Loading history...</p>
-                </div>
               )}
             </TabsContent>
             
@@ -122,7 +156,38 @@ const About = () => {
                 subtitle="State-of-the-art resources designed to enhance learning and development"
                 centered
               />
-              {facilities.length > 0 ? (
+              {loading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+                  {[...Array(6)].map((_, index) => (
+                    <Card key={index} className="overflow-hidden">
+                      <CardContent className="p-0">
+                        {/* Animated image placeholder */}
+                        <div className="h-48 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse relative overflow-hidden">
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="text-gray-400 text-sm font-medium">Content loading...</div>
+                          </div>
+                        </div>
+                        <div className="p-6 space-y-3">
+                          {/* Title placeholder */}
+                          <div className="h-6 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse rounded relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
+                          </div>
+                          {/* Description placeholder */}
+                          <div className="space-y-2">
+                            <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse rounded relative overflow-hidden">
+                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
+                            </div>
+                            <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse rounded w-3/4 relative overflow-hidden">
+                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : facilities.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
                   {facilities.map((facility) => (
                     <Card key={facility.id} className="card-hover">
@@ -146,12 +211,6 @@ const About = () => {
                     </Card>
                   ))}
                 </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">
-                    {loading ? 'Loading facilities...' : 'No facilities available.'}
-                  </p>
-                </div>
               )}
             </TabsContent>
             
@@ -161,7 +220,51 @@ const About = () => {
                 subtitle="Meet our dedicated team of educators and administrators"
                 centered
               />
-              {staff.length > 0 ? (
+              {loading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
+                  {[...Array(6)].map((_, index) => (
+                    <Card key={index} className="overflow-hidden relative">
+                      <CardContent className="p-6">
+                        <div className="flex items-center space-x-4 mb-4">
+                          {/* Avatar placeholder */}
+                          <div className="h-16 w-16 rounded-full bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
+                          </div>
+                          <div className="flex-1 space-y-2">
+                            {/* Name placeholder */}
+                            <div className="h-5 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse rounded relative overflow-hidden">
+                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
+                            </div>
+                            {/* Position placeholder */}
+                            <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse rounded w-3/4 relative overflow-hidden">
+                              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
+                            </div>
+                          </div>
+                        </div>
+                        {/* Bio placeholder */}
+                        <div className="space-y-2 mb-4">
+                          <div className="h-3 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse rounded relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
+                          </div>
+                          <div className="h-3 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse rounded w-4/5 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
+                          </div>
+                        </div>
+                        {/* Contact placeholder */}
+                        <div className="space-y-2">
+                          <div className="h-3 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse rounded w-2/3 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
+                          </div>
+                          <div className="h-3 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse rounded w-1/2 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
+                          </div>
+                        </div>
+                        <div className="absolute top-4 right-4 text-xs text-gray-400">Content loading...</div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : staff.length > 0 && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
                   {staff.map((member) => (
                     <Card key={member.id} className="card-hover">
@@ -208,12 +311,6 @@ const About = () => {
                       </CardContent>
                     </Card>
                   ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">
-                    {loading ? 'Loading staff members...' : 'No staff members available.'}
-                  </p>
                 </div>
               )}
             </TabsContent>

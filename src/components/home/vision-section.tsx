@@ -10,62 +10,36 @@ type VisionSection = Database['public']['Tables']['vision_section']['Row'];
 export function VisionSection() {
   const [visionData, setVisionData] = useState<VisionSection>({
     id: 'main',
-    title: 'Our Vision & Mission',
-    subtitle: 'Fostering a learning environment that nurtures excellence, character, and lifelong learning',
-    main_content: 'At SchoolVerse Academy, we believe in providing an education that goes beyond textbooks. Our vision is to create a nurturing environment where students can discover their potential, develop critical skills, and become responsible global citizens prepared for the challenges of tomorrow.',
-    principal_message: 'Education is not just about academic achievement, but about nurturing curious minds, compassionate hearts, and resilient spirits. At SchoolVerse, we are committed to guiding each student on their unique journey of growth and discovery.',
-    principal_name: 'Dr. Ashirwad Goel',
-    principal_title: 'Principal, St.G.D.Convent School',
-    features: [
-      {
-        title: "Academic Excellence",
-        description: "We maintain high academic standards through innovative teaching methods and comprehensive curriculum."
-      },
-      {
-        title: "Inclusive Community",
-        description: "Our diverse and supportive environment ensures every student feels valued and empowered to succeed."
-      },
-      {
-        title: "Holistic Development",
-        description: "We focus on developing well-rounded individuals through academic, social, and extracurricular activities."
-      },
-      {
-        title: "Future-Ready Skills",
-        description: "Our programs equip students with critical thinking, creativity, and technological skills for future success."
-      }
-    ],
+    title: '',
+    subtitle: '',
+    main_content: '',
+    principal_message: '',
+    principal_name: '',
+    principal_title: '',
+    features: [],
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadVisionData = async () => {
+      setLoading(true);
       const data = await ContentService.getVisionSection();
       if (data) {
         setVisionData(data);
       }
+      setLoading(false);
     };
     loadVisionData();
   }, []);
 
-  const features = Array.isArray(visionData.features) ? visionData.features : [
-    {
-      title: "Academic Excellence",
-      description: "We maintain high academic standards through innovative teaching methods and comprehensive curriculum."
-    },
-    {
-      title: "Inclusive Community",
-      description: "Our diverse and supportive environment ensures every student feels valued and empowered to succeed."
-    },
-    {
-      title: "Holistic Development",
-      description: "We focus on developing well-rounded individuals through academic, social, and extracurricular activities."
-    },
-    {
-      title: "Future-Ready Skills",
-      description: "Our programs equip students with critical thinking, creativity, and technological skills for future success."
-    }
-  ];
+  const features = Array.isArray(visionData.features) 
+    ? visionData.features.map(f => ({ 
+        title: (f as any)?.title || '', 
+        description: (f as any)?.description || '' 
+      }))
+    : [];
 
   const featureIcons = [
     <BookOpen className="h-10 w-10 text-primary" />,
@@ -77,31 +51,92 @@ export function VisionSection() {
   return (
     <section className="py-16 bg-background">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
-          <div>
-            <SectionTitle 
-              title={visionData.title} 
-              subtitle={visionData.subtitle || undefined}
-            />
-            
-            <p className="text-muted-foreground my-6">
-              {visionData.main_content}
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {features.map((feature, index) => (
-              <div 
-                key={index} 
-                className="bg-card border rounded-lg p-6 card-hover"
-              >
-                <div className="mb-4">{featureIcons[index] || featureIcons[0]}</div>
-                <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
-                <p className="text-muted-foreground text-sm">{feature.description}</p>
+        {loading ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+            {/* Left side - Text placeholders */}
+            <div className="space-y-6">
+              {/* Title placeholder */}
+              <div className="space-y-3">
+                <div className="h-8 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse rounded w-64 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
+                </div>
+                <div className="h-6 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse rounded w-96 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
+                </div>
               </div>
-            ))}
+              
+              {/* Content placeholder */}
+              <div className="space-y-2">
+                <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse rounded relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
+                </div>
+                <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse rounded relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
+                </div>
+                <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse rounded w-3/4 relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
+                </div>
+              </div>
+              
+              <div className="text-gray-400 text-sm">Loading...</div>
+            </div>
+            
+            {/* Right side - Feature cards placeholders */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {[...Array(4)].map((_, index) => (
+                <div 
+                  key={index} 
+                  className="bg-card border rounded-lg p-6"
+                >
+                  <div className="mb-4 h-10 w-10 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse rounded relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
+                  </div>
+                  <div className="h-6 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse rounded mb-2 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse rounded relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
+                    </div>
+                    <div className="h-4 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse rounded w-3/4 relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 animate-shimmer"></div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+            <div>
+              <SectionTitle 
+                title={visionData.title || 'Our Vision & Mission'} 
+                subtitle={visionData.subtitle || undefined}
+              />
+              
+              {visionData.main_content && (
+                <p className="text-muted-foreground my-6">
+                  {visionData.main_content}
+                </p>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {features.length > 0 && (
+                features.map((feature, index) => (
+                  <div 
+                    key={index} 
+                    className="bg-card border rounded-lg p-6 card-hover"
+                  >
+                    <div className="mb-4">{featureIcons[index] || featureIcons[0]}</div>
+                    <h3 className="text-lg font-semibold mb-2">{feature.title}</h3>
+                    <p className="text-muted-foreground text-sm">{feature.description}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

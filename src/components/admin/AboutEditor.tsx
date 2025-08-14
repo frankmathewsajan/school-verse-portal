@@ -17,38 +17,17 @@ export function AboutEditor() {
   const [loading, setLoading] = useState(false);
   const [aboutData, setAboutData] = useState<AboutSection & { about_image_url?: string }>({
     id: 'main',
-    title: 'About Our School',
-    subtitle: 'Excellence in education through innovative teaching and comprehensive curriculum',
-    main_content: [
-      'St. G. D. Convent School is a leading educational institution committed to providing a balanced and stimulating learning environment where students can achieve academic excellence and personal growth.',
-      'Our comprehensive curriculum is designed to develop critical thinking, creativity, and problem-solving skills, preparing students for success in higher education and beyond.',
-      'We pride ourselves on small class sizes, dedicated teachers, and a supportive community that nurtures each student\'s individual talents and abilities.'
-    ],
-    principal_message: 'Education is not just about academic achievement, but about nurturing curious minds, compassionate hearts, and resilient spirits. At St. G. D. Convent School, we are committed to guiding each student on their unique journey of growth and discovery.',
-    principal_name: 'Mr. Ashirwad Goyal',
-    principal_title: 'Principal, St. G. D. Convent School',
-    principal_image_url: 'https://randomuser.me/api/portraits/women/45.jpg',
-    about_image_url: 'https://images.unsplash.com/photo-1519452635265-7b1fbfd1e4e0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80',
-    school_founded_year: 1985,
+    title: '',
+    subtitle: '',
+    main_content: [],
+    principal_message: '',
+    principal_name: '',
+    principal_title: '',
+    principal_image_url: '',
+    about_image_url: '',
+    school_founded_year: null,
     school_description: null,
-    features: [
-      {
-        title: "Founded in 1985",
-        description: "With decades of educational excellence and a strong foundation in values-based learning"
-      },
-      {
-        title: "Diverse Community",
-        description: "Creating an inclusive environment where every student feels valued and empowered"
-      },
-      {
-        title: "Comprehensive Curriculum",
-        description: "Balancing academic rigor with holistic development for well-rounded education"
-      },
-      {
-        title: "Academic Excellence",
-        description: "Consistent record of outstanding achievements in academics and extracurriculars"
-      }
-    ],
+    features: [],
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString()
   });
@@ -198,7 +177,7 @@ export function AboutEditor() {
                 id="title"
                 value={aboutData.title}
                 onChange={(e) => setAboutData({ ...aboutData, title: e.target.value })}
-                placeholder="About Our School"
+                placeholder="Enter section title"
               />
             </div>
             <div>
@@ -207,7 +186,7 @@ export function AboutEditor() {
                 id="subtitle"
                 value={aboutData.subtitle || ''}
                 onChange={(e) => setAboutData({ ...aboutData, subtitle: e.target.value })}
-                placeholder="Excellence in education..."
+                placeholder="Enter subtitle"
               />
             </div>
           </div>
@@ -219,7 +198,7 @@ export function AboutEditor() {
               type="number"
               value={aboutData.school_founded_year || ''}
               onChange={(e) => setAboutData({ ...aboutData, school_founded_year: parseInt(e.target.value) || null })}
-              placeholder="1985"
+              placeholder="Enter founding year"
             />
           </div>
 
@@ -276,7 +255,7 @@ export function AboutEditor() {
               id="principal-message"
               value={aboutData.principal_message || ''}
               onChange={(e) => setAboutData({ ...aboutData, principal_message: e.target.value })}
-              placeholder="Principal's inspirational message"
+              placeholder="Enter principal's message"
               rows={4}
             />
           </div>
@@ -288,7 +267,7 @@ export function AboutEditor() {
                 id="principal-name"
                 value={aboutData.principal_name || ''}
                 onChange={(e) => setAboutData({ ...aboutData, principal_name: e.target.value })}
-                placeholder="Mr. Ashirwad Goyal"
+                placeholder="Enter principal's name"
               />
             </div>
             <div>
@@ -297,7 +276,7 @@ export function AboutEditor() {
                 id="principal-title"
                 value={aboutData.principal_title || ''}
                 onChange={(e) => setAboutData({ ...aboutData, principal_title: e.target.value })}
-                placeholder="Principal, St. G. D. Convent School"
+                placeholder="Enter principal's title"
               />
             </div>
           </div>
