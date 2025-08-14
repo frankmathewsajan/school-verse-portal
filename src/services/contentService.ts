@@ -951,87 +951,21 @@ export class ContentService {
     }
   }
 
-  // School Facilities Methods - Using mock data until database tables are created
+  // School Facilities Methods
   static async getSchoolFacilities(): Promise<SchoolFacility[]> {
     try {
-      // First try to get from database
       const { data, error } = await supabase
         .from('school_facilities' as any)
         .select('*')
         .eq('is_active', true)
         .order('display_order', { ascending: true });
       
-      if (error || !data || data.length === 0) {
-        // Return mock data as fallback
-        return [
-          {
-            id: '1',
-            title: 'Modern Library',
-            description: 'Our extensive library houses over 20,000 books, digital resources, and quiet study spaces.',
-            image_url: 'https://images.unsplash.com/photo-1517031350709-19e7df358b75?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1740&q=80',
-            display_order: 1,
-            is_active: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          },
-          {
-            id: '2',
-            title: 'Science Laboratories',
-            description: 'Fully equipped labs for physics, chemistry, and biology with modern experimental apparatus.',
-            image_url: 'https://images.unsplash.com/photo-1564069114553-7215e1ff1890?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1332&q=80',
-            display_order: 2,
-            is_active: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          },
-          {
-            id: '3',
-            title: 'Sports Complex',
-            description: 'Indoor and outdoor sports facilities including a gymnasium, swimming pool, and athletic fields.',
-            image_url: 'https://images.unsplash.com/photo-1534452203293-494d7ddbf7e0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1772&q=80',
-            display_order: 3,
-            is_active: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          },
-          {
-            id: '4',
-            title: 'Auditorium',
-            description: 'A 500-seat auditorium for performances, assemblies, and community events.',
-            image_url: 'https://images.unsplash.com/photo-1571260899304-425eee4c7efd?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80',
-            display_order: 4,
-            is_active: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          },
-          {
-            id: '5',
-            title: 'Technology Center',
-            description: 'Computer labs with the latest hardware and software for digital learning and research.',
-            image_url: 'https://images.unsplash.com/photo-1589652717521-10c0d092dea9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1770&q=80',
-            display_order: 5,
-            is_active: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          },
-          {
-            id: '6',
-            title: 'Arts Center',
-            description: 'Studios for visual arts, music, and performing arts with professional equipment.',
-            image_url: 'https://images.unsplash.com/photo-1604881988758-f76ad2f7aac1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1771&q=80',
-            display_order: 6,
-            is_active: true,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }
-        ];
-      }
-      
-      if (Array.isArray(data)) {
-        return data as unknown as SchoolFacility[];
-      } else {
+      if (error) {
+        console.error('Error fetching facilities:', error);
         return [];
       }
+      
+      return (data as any) || [];
     } catch (error) {
       console.error('Error in getSchoolFacilities:', error);
       return [];
@@ -1049,14 +983,14 @@ export class ContentService {
         }]);
       
       if (error) {
-        console.warn('Database create failed, using mock behavior:', error);
-        return true; // Mock success
+        console.error('Error creating facility:', error);
+        return false;
       }
       
       return true;
     } catch (error) {
-      console.warn('Error in createSchoolFacility, using mock behavior:', error);
-      return true; // Mock success
+      console.error('Error in createSchoolFacility:', error);
+      return false;
     }
   }
 
@@ -1071,14 +1005,14 @@ export class ContentService {
         .eq('id', id);
       
       if (error) {
-        console.warn('Database update failed, using mock behavior:', error);
-        return true; // Mock success
+        console.error('Error updating facility:', error);
+        return false;
       }
       
       return true;
     } catch (error) {
-      console.warn('Error in updateSchoolFacility, using mock behavior:', error);
-      return true; // Mock success
+      console.error('Error in updateSchoolFacility:', error);
+      return false;
     }
   }
 
@@ -1090,14 +1024,14 @@ export class ContentService {
         .eq('id', id);
       
       if (error) {
-        console.warn('Database delete failed, using mock behavior:', error);
-        return true; // Mock success
+        console.error('Error deleting facility:', error);
+        return false;
       }
       
       return true;
     } catch (error) {
-      console.warn('Error in deleteSchoolFacility, using mock behavior:', error);
-      return true; // Mock success
+      console.error('Error in deleteSchoolFacility:', error);
+      return false;
     }
   }
 
