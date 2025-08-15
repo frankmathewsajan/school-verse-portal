@@ -954,6 +954,8 @@ export class ContentService {
   // School Facilities Methods
   static async getSchoolFacilities(): Promise<SchoolFacility[]> {
     try {
+      console.log('Fetching school facilities...');
+      
       const { data, error } = await supabase
         .from('school_facilities' as any)
         .select('*')
@@ -965,6 +967,7 @@ export class ContentService {
         return [];
       }
       
+      console.log('Fetched facilities:', data);
       return (data as any) || [];
     } catch (error) {
       console.error('Error in getSchoolFacilities:', error);
@@ -974,19 +977,23 @@ export class ContentService {
 
   static async createSchoolFacility(facility: Omit<SchoolFacility, 'id' | 'created_at' | 'updated_at'>): Promise<boolean> {
     try {
-      const { error } = await supabase
+      console.log('Creating facility with data:', facility);
+      
+      const { data, error } = await supabase
         .from('school_facilities' as any)
         .insert([{
           ...facility,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
-        }]);
+        }])
+        .select(); // Add select to get the created record
       
       if (error) {
         console.error('Error creating facility:', error);
         return false;
       }
       
+      console.log('Facility created successfully:', data);
       return true;
     } catch (error) {
       console.error('Error in createSchoolFacility:', error);

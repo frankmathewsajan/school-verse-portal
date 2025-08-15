@@ -29,7 +29,46 @@ export function FacilitiesEditor() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+  
+  // Form state managed at the parent level to prevent resets
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    image_url: ''
+  });
+  
   const { toast } = useToast();
+
+  useEffect(() => {
+    loadFacilities();
+  }, []);
+
+  // Reset form when starting to add/edit
+  const resetForm = (facility?: FacilityData) => {
+    setFormData({
+      title: facility?.title || '',
+      description: facility?.description || '',
+      image_url: facility?.image_url || ''
+    });
+  };
+
+  const startAddingFacility = () => {
+    resetForm();
+    setShowAddForm(true);
+    setEditingFacility(null);
+  };
+
+  const startEditingFacility = (facility: FacilityData) => {
+    resetForm(facility);
+    setEditingFacility(facility);
+    setShowAddForm(false);
+  };
+
+  const cancelForm = () => {
+    setShowAddForm(false);
+    setEditingFacility(null);
+    resetForm();
+  };
 
   useEffect(() => {
     loadFacilities();
@@ -49,30 +88,44 @@ export function FacilitiesEditor() {
     }
   };
 
-  const handleSaveFacility = async (facility: Omit<FacilityData, 'id' | 'display_order' | 'is_active'>) => {
+  const handleSaveFacility = async () => {
+    if (!formData.title.trim() || !formData.description.trim()) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       setSaving(true);
+      console.log('Saving facility:', formData);
       let success = false;
 
       if (editingFacility) {
         // Update existing facility
-        success = await ContentService.updateSchoolFacility(editingFacility.id, facility);
+        console.log('Updating existing facility with ID:', editingFacility.id);
+        success = await ContentService.updateSchoolFacility(editingFacility.id, formData);
       } else {
         // Create new facility
+        console.log('Creating new facility');
         success = await ContentService.createSchoolFacility({
-          ...facility,
+          ...formData,
           display_order: facilities.length + 1,
           is_active: true
         });
       }
+
+      console.log('Save operation result:', success);
 
       if (success) {
         toast({
           title: "Success",
           description: editingFacility ? "Facility updated successfully" : "Facility created successfully",
         });
-        setEditingFacility(null);
-        setShowAddForm(false);
+        cancelForm(); // This will reset the form and close it
+        console.log('Reloading facilities...');
         await loadFacilities();
       } else {
         toast({
@@ -121,36 +174,18 @@ export function FacilitiesEditor() {
     }
   };
 
-  const FacilityForm = ({ facility, onSave, onCancel }: {
-    facility?: FacilityData;
-    onSave: (facility: Omit<FacilityData, 'id' | 'display_order' | 'is_active'>) => void;
-    onCancel: () => void;
-  }) => {
-    const [formData, setFormData] = useState({
-      title: facility?.title || '',
-      description: facility?.description || '',
-      image_url: facility?.image_url || ''
-    });
-
+  const FacilityForm = () => {
     const handleSubmit = (e: React.FormEvent) => {
       e.preventDefault();
-      if (!formData.title.trim() || !formData.description.trim()) {
-        toast({
-          title: "Error",
-          description: "Please fill in all required fields",
-          variant: "destructive"
-        });
-        return;
-      }
-      onSave(formData);
+      handleSaveFacility();
     };
 
     return (
       <Card>
         <CardHeader>
-          <CardTitle>{facility ? 'Edit Facility' : 'Add New Facility'}</CardTitle>
+          <CardTitle>{editingFacility ? 'Edit Facility' : 'Add New Facility'}</CardTitle>
           <CardDescription>
-            {facility ? 'Update the facility information' : 'Create a new facility entry'}
+            {editingFacility ? 'Update the facility information' : 'Create a new facility entry'}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -192,7 +227,7 @@ export function FacilitiesEditor() {
                 {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
                 {saving ? 'Saving...' : 'Save Facility'}
               </Button>
-              <Button type="button" variant="outline" onClick={onCancel}>
+              <Button type="button" variant="outline" onClick={cancelForm}>
                 Cancel
               </Button>
             </div>
@@ -243,7 +278,7 @@ export function FacilitiesEditor() {
           </p>
         </div>
         <Button 
-          onClick={() => setShowAddForm(true)}
+          onClick={startAddingFacility}
           className="flex items-center gap-2"
         >
           <Plus className="h-4 w-4" />
@@ -253,49 +288,113 @@ export function FacilitiesEditor() {
 
       {/* Add/Edit Form */}
       {(showAddForm || editingFacility) && (
-        <FacilityForm
-          facility={editingFacility || undefined}
-          onSave={handleSaveFacility}
-          onCancel={() => {
-            setShowAddForm(false);
-            setEditingFacility(null);
-          }}
-        />
+        <FacilityForm />
       )}
 
       {/* Facilities List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {facilities.map((facility) => (
-          <Card key={facility.id} className="card-hover">
+          <Card key={facility.id} className="card-hover overflow-hidden">
             <CardContent className="p-0">
-              {facility.image_url && (
-                <div className="h-48 overflow-hidden rounded-t-lg">
-                  <img 
-                    src={facility.image_url} 
-                    alt={facility.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              <div className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-lg font-semibold">{facility.title}</h3>
-                  <div className="flex items-center gap-1">
-                    {facility.is_active ? (
-                      <Eye className="h-4 w-4 text-green-500" />
-                    ) : (
-                      <EyeOff className="h-4 w-4 text-gray-400" />
-                    )}
+              {/* Image Section */}
+              <div className="relative group">
+                {facility.image_url ? (
+                  <div className="h-48 overflow-hidden">
+                    <img 
+                      src={facility.image_url} 
+                      alt={facility.title}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      onLoad={() => console.log('Image loaded successfully:', facility.image_url)}
+                      onError={() => console.error('Image failed to load:', facility.image_url)}
+                    />
+                    {/* Debug info - remove in production */}
+                    <div className="absolute bottom-0 left-0 bg-black/70 text-white text-xs p-1">
+                      {facility.image_url ? 'Image URL exists' : 'No URL'}
+                    </div>
+                    {/* Image Overlay with Action Buttons */}
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => startEditingFacility(facility)}
+                        className="bg-white/90 text-black hover:bg-white"
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteFacility(facility.id)}
+                        className="bg-red-500/90 hover:bg-red-600"
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Delete
+                      </Button>
+                    </div>
                   </div>
+                ) : (
+                  <div className="h-48 bg-gray-100 flex items-center justify-center group-hover:bg-gray-200 transition-colors">
+                    <div className="text-center text-gray-400">
+                      <Image className="h-12 w-12 mx-auto mb-2" />
+                      <p className="text-sm">No image uploaded</p>
+                    </div>
+                    {/* Action Buttons for No Image */}
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => startEditingFacility(facility)}
+                        className="bg-white/90 text-black hover:bg-white"
+                      >
+                        <Edit className="h-4 w-4 mr-1" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => handleDeleteFacility(facility.id)}
+                        className="bg-red-500/90 hover:bg-red-600"
+                      >
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Delete
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Status Badge */}
+                <div className="absolute top-2 right-2">
+                  {facility.is_active ? (
+                    <div className="bg-green-500 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                      <Eye className="h-3 w-3" />
+                      Active
+                    </div>
+                  ) : (
+                    <div className="bg-gray-500 text-white px-2 py-1 rounded-full text-xs flex items-center gap-1">
+                      <EyeOff className="h-3 w-3" />
+                      Hidden
+                    </div>
+                  )}
                 </div>
-                <p className="text-sm text-muted-foreground mb-4">
+              </div>
+              
+              {/* Content Section */}
+              <div className="p-4">
+                <div className="mb-2">
+                  <h3 className="text-lg font-semibold line-clamp-2">{facility.title}</h3>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
                   {facility.description}
                 </p>
+                
+                {/* Quick Action Buttons */}
                 <div className="flex gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setEditingFacility(facility)}
+                    onClick={() => startEditingFacility(facility)}
+                    className="flex-1"
                   >
                     <Edit className="h-4 w-4 mr-1" />
                     Edit
@@ -304,10 +403,9 @@ export function FacilitiesEditor() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleDeleteFacility(facility.id)}
-                    className="text-destructive hover:text-destructive"
+                    className="text-destructive hover:text-destructive hover:border-destructive"
                   >
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Delete
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </div>

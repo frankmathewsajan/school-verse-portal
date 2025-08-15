@@ -7,8 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { Save, Plus, Trash2, Edit, Loader2 } from 'lucide-react';
+import { Save, Plus, Trash2, Edit, Loader2, ExternalLink, Calendar } from 'lucide-react';
 import { ContentService } from '@/services/contentService';
+import { AnnouncementContent } from '@/components/ui/text-with-links';
 import type { Database } from '@/integrations/supabase/types';
 
 type Announcement = Database['public']['Tables']['announcements']['Row'];
@@ -194,10 +195,13 @@ export function NotificationEditor() {
               id="new-content"
               value={newNotification.content}
               onChange={(e) => setNewNotification({ ...newNotification, content: e.target.value })}
-              placeholder="Enter announcement content"
+              placeholder="Enter announcement content. URLs will automatically become clickable links."
               className="mt-1"
               rows={4}
             />
+            <p className="text-xs text-muted-foreground mt-1">
+              Tip: Include URLs (like https://example.com) and they will become clickable links
+            </p>
           </div>
           
           <Button onClick={addNotification} disabled={loading} className="flex items-center gap-2">
@@ -221,82 +225,114 @@ export function NotificationEditor() {
           ) : (
             <div className="space-y-4">
               {notifications.map((notification) => (
-                <div key={notification.id} className="border rounded-lg p-4">
-                  {editingNotification?.id === notification.id ? (
-                    <div className="space-y-4">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <Card key={notification.id} className="overflow-hidden">
+                  <CardContent className="p-0">
+                    {editingNotification?.id === notification.id ? (
+                      <div className="p-6 space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label>Title</Label>
+                            <Input
+                              value={editingNotification.title}
+                              onChange={(e) => setEditingNotification({ ...editingNotification, title: e.target.value })}
+                              className="mt-1"
+                            />
+                          </div>
+                          <div>
+                            <Label>Category</Label>
+                            <Select 
+                              value={editingNotification.category || ''} 
+                              onValueChange={(value) => setEditingNotification({ ...editingNotification, category: value })}
+                            >
+                              <SelectTrigger className="mt-1">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {categories.map((category) => (
+                                  <SelectItem key={category} value={category}>
+                                    {category.charAt(0).toUpperCase() + category.slice(1)}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        
                         <div>
-                          <Label>Title</Label>
-                          <Input
-                            value={editingNotification.title}
-                            onChange={(e) => setEditingNotification({ ...editingNotification, title: e.target.value })}
+                          <Label>Content</Label>
+                          <Textarea
+                            value={editingNotification.content}
+                            onChange={(e) => setEditingNotification({ ...editingNotification, content: e.target.value })}
                             className="mt-1"
+                            rows={4}
+                            placeholder="Enter announcement content. URLs will automatically become clickable links."
                           />
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Tip: Include URLs and they will become clickable links
+                          </p>
                         </div>
-                        <div>
-                          <Label>Category</Label>
-                          <Select 
-                            value={editingNotification.category || ''} 
-                            onValueChange={(value) => setEditingNotification({ ...editingNotification, category: value })}
-                          >
-                            <SelectTrigger className="mt-1">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {categories.map((category) => (
-                                <SelectItem key={category} value={category}>
-                                  {category.charAt(0).toUpperCase() + category.slice(1)}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                        
+                        <div className="flex gap-2">
+                          <Button size="sm" onClick={() => updateNotification(editingNotification)} disabled={loading}>
+                            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Save className="h-4 w-4 mr-1" />}
+                            Save Changes
+                          </Button>
+                          <Button size="sm" variant="outline" onClick={() => setEditingNotification(null)}>
+                            Cancel
+                          </Button>
                         </div>
                       </div>
-                      
-                      <div>
-                        <Label>Content</Label>
-                        <Textarea
-                          value={editingNotification.content}
-                          onChange={(e) => setEditingNotification({ ...editingNotification, content: e.target.value })}
-                          className="mt-1"
-                          rows={4}
-                        />
-                      </div>
-                      
-                      <div className="flex gap-2">
-                        <Button size="sm" onClick={() => updateNotification(editingNotification)} disabled={loading}>
-                          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Save Changes"}
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => setEditingNotification(null)}>
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-2">
-                          <h3 className="font-semibold text-lg">{notification.title}</h3>
-                          <span className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">
-                            {notification.category}
-                          </span>
+                    ) : (
+                      <div className="p-6">
+                        <div className="flex justify-between items-start gap-4">
+                          <div className="flex-1 min-w-0">
+                            {/* Header */}
+                            <div className="flex items-start justify-between mb-3">
+                              <div className="flex-1 min-w-0">
+                                <h3 className="font-semibold text-lg mb-2 break-words pr-2">
+                                  {notification.title}
+                                </h3>
+                                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                                  <div className="flex items-center gap-1">
+                                    <Calendar className="h-3 w-3" />
+                                    {formatDate(notification.created_at || new Date().toISOString())}
+                                  </div>
+                                  <span className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">
+                                    {notification.category}
+                                  </span>
+                                </div>
+                              </div>
+                              <div className="flex gap-2 flex-shrink-0">
+                                <Button size="sm" variant="outline" onClick={() => setEditingNotification(notification)}>
+                                  <Edit className="h-3 w-3 mr-1" />
+                                  Edit
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  onClick={() => removeNotification(notification.id)} 
+                                  disabled={loading}
+                                  className="text-destructive hover:text-destructive"
+                                >
+                                  <Trash2 className="h-3 w-3 mr-1" />
+                                  Delete
+                                </Button>
+                              </div>
+                            </div>
+                            
+                            {/* Content with clickable links */}
+                            <div className="prose prose-sm max-w-none">
+                              <AnnouncementContent 
+                                content={notification.content}
+                                className="text-muted-foreground leading-relaxed"
+                              />
+                            </div>
+                          </div>
                         </div>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          {formatDate(notification.created_at || new Date().toISOString())}
-                        </p>
-                        <p className="text-muted-foreground">{notification.content}</p>
                       </div>
-                      <div className="flex gap-2 ml-4">
-                        <Button size="sm" variant="outline" onClick={() => setEditingNotification(notification)}>
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                        <Button size="sm" variant="outline" onClick={() => removeNotification(notification.id)} disabled={loading}>
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                    )}
+                  </CardContent>
+                </Card>
               ))}
             </div>
           )}

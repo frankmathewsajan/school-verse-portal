@@ -55,6 +55,7 @@ SELECT * FROM (VALUES
 WHERE NOT EXISTS (SELECT 1 FROM school_facilities LIMIT 1);
 
 -- Create function to get active facilities ordered by display_order
+DROP FUNCTION IF EXISTS get_active_facilities();
 CREATE OR REPLACE FUNCTION get_active_facilities()
 RETURNS TABLE(
     id UUID,

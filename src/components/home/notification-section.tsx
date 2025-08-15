@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Bell } from 'lucide-react';
+import { Bell, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { SectionTitle } from '@/components/ui/section-title';
+import { AnnouncementContent } from '@/components/ui/text-with-links';
 import { Link } from 'react-router-dom';
 import { ContentService } from '@/services/contentService';
 import type { Database } from '@/integrations/supabase/types';
@@ -41,23 +42,30 @@ export function NotificationSection() {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-12">
           {notifications.map((notification) => (
-            <Card key={notification.id} className="card-hover h-full">
+            <Card key={notification.id} className="card-hover h-full flex flex-col">
               <CardHeader className="pb-3">
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-xl">{notification.title}</CardTitle>
-                  <span className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">
+                <div className="flex justify-between items-start gap-2">
+                  <CardTitle className="text-xl break-words line-clamp-2 flex-1">
+                    {notification.title}
+                  </CardTitle>
+                  <span className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full whitespace-nowrap flex-shrink-0">
                     {notification.category || 'announcement'}
                   </span>
                 </div>
-                <CardDescription>
+                <CardDescription className="flex items-center gap-1">
+                  <Calendar className="h-3 w-3" />
                   {formatDate(notification.created_at || new Date().toISOString())}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <p>{notification.content}</p>
+              <CardContent className="flex-1">
+                <AnnouncementContent 
+                  content={notification.content}
+                  maxLines={4}
+                  className="text-sm text-muted-foreground"
+                />
               </CardContent>
               <CardFooter>
-                <Button variant="ghost" size="sm">
+                <Button variant="ghost" size="sm" className="w-full">
                   Read More
                 </Button>
               </CardFooter>

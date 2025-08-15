@@ -63,24 +63,29 @@ export function ImageUpload({
     // Upload file
     setUploading(true);
     try {
+      console.log('Starting upload for file:', file.name, 'to folder:', folder);
       const url = await UploadService.uploadImage(file, folder);
       if (url) {
+        console.log('Upload successful, URL:', url);
         onChange(url);
+        setPreview(null); // Clear preview since we now have the final URL
         toast({
           title: "Image uploaded successfully",
           description: "The image has been uploaded and saved",
         });
       } else {
+        console.error('Upload failed: No URL returned');
         toast({
           title: "Upload failed",
-          description: "Please try again later",
+          description: "No URL was returned from the upload service. Please check your Supabase storage configuration.",
           variant: "destructive"
         });
       }
     } catch (error) {
+      console.error('Upload error:', error);
       toast({
         title: "Upload failed",
-        description: "Please try again later",
+        description: `Upload error: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive"
       });
     } finally {
@@ -98,7 +103,8 @@ export function ImageUpload({
 
   const handleUrlChange = (url: string) => {
     onChange(url);
-    setPreview(null);
+    // Don't clear preview when URL changes programmatically
+    // setPreview(null);
   };
 
   return (

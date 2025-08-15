@@ -31,6 +31,7 @@ import { NotificationEditor } from '@/components/admin/NotificationEditor';
 import UnifiedGalleryEditor from '@/components/admin/UnifiedGalleryEditor';
 import { MaterialsEditor } from '@/components/admin/MaterialsEditor';
 import FooterEditor from '@/components/admin/FooterEditor';
+import { StorageTestComponent } from '@/components/debug/StorageTestComponent';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -248,7 +249,7 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-10">
+              <TabsList className="grid w-full grid-cols-11">
                 <TabsTrigger value="hero">
                   <HomeIcon className="w-4 h-4 mr-2" />
                   Hero
@@ -288,6 +289,10 @@ const AdminDashboard = () => {
                 <TabsTrigger value="footer">
                   <SettingsIcon className="w-4 h-4 mr-2" />
                   Footer
+                </TabsTrigger>
+                <TabsTrigger value="storage-test">
+                  <ShieldCheckIcon className="w-4 h-4 mr-2" />
+                  Storage Test
                 </TabsTrigger>
               </TabsList>
               
@@ -329,6 +334,10 @@ const AdminDashboard = () => {
               
               <TabsContent value="footer" className="mt-6">
                 <FooterEditor onSave={loadStatistics} />
+              </TabsContent>
+              
+              <TabsContent value="storage-test" className="mt-6">
+                <StorageTestComponent />
               </TabsContent>
             </Tabs>
           </CardContent>

@@ -9,6 +9,8 @@ export class UploadService {
       const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `${folder}/${fileName}`;
 
+      console.log('Uploading image:', { fileName, filePath, fileSize: file.size, fileType: file.type });
+
       // Upload file
       const { data, error } = await supabase.storage
         .from('site-images')
@@ -19,14 +21,22 @@ export class UploadService {
 
       if (error) {
         console.error('Error uploading image:', error);
+        console.error('Error details:', {
+          message: error.message,
+          statusCode: (error as any).statusCode,
+          errorCode: (error as any).error
+        });
         return null;
       }
+
+      console.log('Upload successful:', data);
 
       // Get public URL
       const { data: publicData } = supabase.storage
         .from('site-images')
         .getPublicUrl(filePath);
 
+      console.log('Public URL generated:', publicData.publicUrl);
       return publicData.publicUrl;
     } catch (error) {
       console.error('Error in uploadImage:', error);
