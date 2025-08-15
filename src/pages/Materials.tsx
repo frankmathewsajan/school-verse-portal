@@ -20,6 +20,7 @@ const Materials = () => {
   const [gradeFilter, setGradeFilter] = useState("all");
   const [materials, setMaterials] = useState<LearningMaterial[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showVideo, setShowVideo] = useState<Record<string, boolean>>({});
   
   // Load materials from database
   useEffect(() => {
@@ -59,6 +60,32 @@ const Materials = () => {
   
   // Get unique subjects for filters from actual data
   const subjects = ["all", ...new Set(materials.map(item => item.subject?.toLowerCase() || 'other'))];
+
+  // YouTube helpers (support youtu.be, watch?v=, /embed/, /shorts/, raw id)
+  const getYouTubeId = (url?: string | null) => {
+    if (!url) return null;
+    try {
+      const u = url.trim();
+      const shortMatch = u.match(/(?:https?:\/\/)?(?:www\.)?youtu\.be\/([-_A-Za-z0-9]{11})/);
+      if (shortMatch) return shortMatch[1];
+      const watchMatch = u.match(/[?&]v=([-_A-Za-z0-9]{11})/);
+      if (watchMatch) return watchMatch[1];
+      const embedMatch = u.match(/(?:embed|v|shorts)\/([-_A-Za-z0-9]{11})/);
+      if (embedMatch) return embedMatch[1];
+      const idOnly = u.match(/^[-_A-Za-z0-9]{11}$/);
+      if (idOnly) return idOnly[0];
+      return null;
+    } catch {
+      return null;
+    }
+  };
+
+  const isYouTubeUrl = (url?: string | null) => !!getYouTubeId(url);
+
+  const getYouTubeEmbedUrl = (url?: string | null) => {
+    const id = getYouTubeId(url);
+    return id ? `https://www.youtube.com/embed/${id}` : null;
+  };
   
   // Filter materials based on search query, selected subject, and grade
   const filteredMaterials = materials.filter(item => {
@@ -217,19 +244,44 @@ const Materials = () => {
                       <Badge variant="secondary">Grade {material.class_level}</Badge>
                     </div>
                   </CardContent>
-                  <CardFooter className="flex justify-between">
-                    <span className="text-xs text-muted-foreground">
-                      Uploaded: {material.created_at ? new Date(material.created_at).toLocaleDateString() : 'Unknown'}
-                    </span>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="gap-1"
-                      onClick={() => handleDownload(material)}
-                    >
-                      <Download className="h-4 w-4" />
-                      Download
-                    </Button>
+                  <CardFooter className="flex flex-col gap-3">
+                    <div className="flex justify-between w-full items-center">
+                      <span className="text-xs text-muted-foreground">
+                        Uploaded: {material.created_at ? new Date(material.created_at).toLocaleDateString() : 'Unknown'}
+                      </span>
+                      {isYouTubeUrl(material.file_url) ? (
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowVideo(prev => ({ ...prev, [material.id]: !prev[material.id] }))}
+                          >
+                            View Video
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="gap-1"
+                          onClick={() => handleDownload(material)}
+                        >
+                          <Download className="h-4 w-4" />
+                          Download
+                        </Button>
+                      )}
+                    </div>
+                    {showVideo[material.id] && isYouTubeUrl(material.file_url) && (
+                      <div className="w-full aspect-video">
+                        <iframe
+                          src={getYouTubeEmbedUrl(material.file_url) || undefined}
+                          title={`YouTube-${material.id}`}
+                          className="w-full h-full rounded"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                    )}
                   </CardFooter>
                 </Card>
               ))}

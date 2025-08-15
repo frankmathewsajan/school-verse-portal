@@ -21,8 +21,11 @@ export function MaterialsEditor() {
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [materials, setMaterials] = useState<LearningMaterial[]>([]);
+  const [showVideo, setShowVideo] = useState<Record<string, boolean>>({});
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploadMethod, setUploadMethod] = useState<'url' | 'upload'>('url');
+  const [metadataLoading, setMetadataLoading] = useState(false);
+  const [metadataError, setMetadataError] = useState<string | null>(null);
   const [newMaterial, setNewMaterial] = useState<Partial<LearningMaterial>>({
     title: '',
     description: '',
@@ -37,12 +40,85 @@ export function MaterialsEditor() {
     loadMaterials();
   }, []);
 
+  // Helper: extract YouTube ID from various link formats (youtu.be, youtube.com/watch, /shorts/, embed)
+  const getYouTubeId = (url?: string | null) => {
+    if (!url) return null;
+    try {
+      const u = url.trim();
+      // Shortened youtu.be/ID
+      const shortMatch = u.match(/(?:https?:\/\/)?(?:www\.)?youtu\.be\/([-_A-Za-z0-9]{11})/);
+      if (shortMatch) return shortMatch[1];
+
+      // Standard watch?v=ID or &v=ID
+      const watchMatch = u.match(/[?&]v=([-_A-Za-z0-9]{11})/);
+      if (watchMatch) return watchMatch[1];
+
+      // /embed/ID
+      const embedMatch = u.match(/(?:embed|v|shorts)\/([-_A-Za-z0-9]{11})/);
+      if (embedMatch) return embedMatch[1];
+
+      // If url is just the ID
+      const idOnly = u.match(/^[-_A-Za-z0-9]{11}$/);
+      if (idOnly) return idOnly[0];
+
+      return null;
+    } catch (e) {
+      return null;
+    }
+  };
+
+  const isYouTubeUrl = (url?: string | null) => !!getYouTubeId(url);
+
+  const getYouTubeEmbedUrl = (url?: string | null) => {
+    const id = getYouTubeId(url);
+    return id ? `https://www.youtube.com/embed/${id}` : null;
+  };
+
   const loadMaterials = async () => {
     setLoading(true);
     const items = await ContentService.getLearningMaterials();
     setMaterials(items);
     setLoading(false);
   };
+
+  // Auto-fill metadata for YouTube links using oEmbed (debounced)
+  useEffect(() => {
+    if (uploadMethod !== 'url') return;
+    const url = newMaterial.file_url;
+    if (!isYouTubeUrl(url)) return;
+
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        setMetadataError(null);
+        setMetadataLoading(true);
+        const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(url || '')}&format=json`;
+        const res = await fetch(oembedUrl, { signal: controller.signal });
+        if (!res.ok) throw new Error(`oEmbed fetch failed: ${res.status}`);
+        const data = await res.json();
+
+        // Merge data into newMaterial but don't overwrite user-filled fields
+        setNewMaterial(prev => ({
+          ...prev,
+          title: prev.title && prev.title.trim() ? prev.title : data.title || prev.title,
+          description: prev.description && prev.description.trim() ? prev.description : (data.author_name ? `Video by ${data.author_name}` : data.title) || prev.description,
+          file_type: 'Link',
+          file_size: '0'
+        }));
+      } catch (err) {
+        if ((err as any).name === 'AbortError') return;
+        console.warn('Failed to fetch YouTube metadata', err);
+        setMetadataError('Failed to fetch video metadata');
+      } finally {
+        setMetadataLoading(false);
+      }
+    }, 600);
+
+    return () => {
+      controller.abort();
+      clearTimeout(timer);
+    };
+  }, [newMaterial.file_url, uploadMethod]);
 
   const handleAddMaterial = async () => {
     if (!newMaterial.title || !newMaterial.description || !newMaterial.subject || !newMaterial.class_level) {
@@ -79,6 +155,12 @@ export function MaterialsEditor() {
       let fileUrl = newMaterial.file_url;
       let fileSize = newMaterial.file_size || '0 MB';
       let fileType = newMaterial.file_type || 'Other';
+
+      // If the provided URL is a YouTube link, treat it as a Video material
+      if (uploadMethod === 'url' && isYouTubeUrl(fileUrl)) {
+        fileType = 'Link';
+        fileSize = '0';
+      }
 
       // Handle file upload
       if (uploadMethod === 'upload' && selectedFile) {
@@ -339,6 +421,27 @@ export function MaterialsEditor() {
                   placeholder="https://example.com/file.pdf"
                   disabled={loading}
                 />
+                {/* Live preview for YouTube links */}
+                {metadataLoading && (
+                  <p className="text-sm text-muted-foreground mt-2">Fetching video details...</p>
+                )}
+                {metadataError && (
+                  <p className="text-sm text-destructive mt-2">{metadataError}</p>
+                )}
+                {isYouTubeUrl(newMaterial.file_url) && (
+                  <div className="mt-2">
+                    <Label>Video Preview</Label>
+                    <div className="mt-1 aspect-video">
+                      <iframe
+                        src={getYouTubeEmbedUrl(newMaterial.file_url) || undefined}
+                        title="YouTube preview"
+                        className="w-full h-full rounded"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    </div>
+                  </div>
+                )}
               </TabsContent>
               <TabsContent value="upload" className="space-y-2">
                 <Label>Upload File</Label>
@@ -410,23 +513,56 @@ export function MaterialsEditor() {
                       <span>{material.file_size}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDownloadMaterial(material)}
-                      >
-                        <Download className="w-4 h-4 mr-1" />
-                        Download
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDeleteMaterial(material.id)}
-                        disabled={loading}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      {isYouTubeUrl(material.file_url) ? (
+                        <div className="flex gap-2 items-center">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setShowVideo(prev => ({ ...prev, [material.id]: !prev[material.id] }))}
+                          >
+                            View Video
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteMaterial(material.id)}
+                            disabled={loading}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex gap-2 items-center">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDownloadMaterial(material)}
+                          >
+                            <Download className="w-4 h-4 mr-1" />
+                            Download
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteMaterial(material.id)}
+                            disabled={loading}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
+                    {showVideo[material.id] && isYouTubeUrl(material.file_url) && (
+                      <div className="mt-3 aspect-video">
+                        <iframe
+                          src={getYouTubeEmbedUrl(material.file_url) || undefined}
+                          title={`YouTube-${material.id}`}
+                          className="w-full h-full rounded"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ))}
