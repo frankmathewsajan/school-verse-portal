@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -22,6 +22,105 @@ interface FacilityData {
   is_active: boolean;
 }
 
+interface FacilityFormProps {
+  formData: {
+    title: string;
+    description: string;
+    image_url: string;
+  };
+  setFormData: React.Dispatch<React.SetStateAction<{
+    title: string;
+    description: string;
+    image_url: string;
+  }>>;
+  editingFacility: FacilityData | null;
+  saving: boolean;
+  onSubmit: () => void;
+  onCancel: () => void;
+}
+
+const FacilityForm = React.memo(({ 
+  formData, 
+  setFormData, 
+  editingFacility, 
+  saving, 
+  onSubmit, 
+  onCancel 
+}: FacilityFormProps) => {
+  const { toast } = useToast();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.title.trim() || !formData.description.trim()) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
+    onSubmit();
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>{editingFacility ? 'Edit Facility' : 'Add New Facility'}</CardTitle>
+        <CardDescription>
+          {editingFacility ? 'Update the facility information' : 'Create a new facility entry'}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="title">Facility Name *</Label>
+            <Input
+              id="title"
+              value={formData.title}
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              placeholder="e.g., Modern Library"
+              required
+            />
+          </div>
+          
+          <div>
+            <Label htmlFor="description">Description *</Label>
+            <Textarea
+              id="description"
+              value={formData.description}
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              placeholder="Describe the facility and its features..."
+              rows={3}
+              required
+            />
+          </div>
+          
+          <div>
+            <ImageUpload
+              label="Facility Image"
+              value={formData.image_url}
+              onChange={(url) => setFormData(prev => ({ ...prev, image_url: url }))}
+              folder="facilities"
+            />
+          </div>
+          
+          <div className="flex gap-2">
+            <Button type="submit" disabled={saving}>
+              {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+              {saving ? 'Saving...' : 'Save Facility'}
+            </Button>
+            <Button type="button" variant="outline" onClick={onCancel}>
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
+  );
+});
+
+FacilityForm.displayName = 'FacilityForm';
+
 export function FacilitiesEditor() {
   const [facilities, setFacilities] = useState<FacilityData[]>([]);
   const [editingFacility, setEditingFacility] = useState<FacilityData | null>(null);
@@ -44,31 +143,31 @@ export function FacilitiesEditor() {
   }, []);
 
   // Reset form when starting to add/edit
-  const resetForm = (facility?: FacilityData) => {
+  const resetForm = useCallback((facility?: FacilityData) => {
     setFormData({
       title: facility?.title || '',
       description: facility?.description || '',
       image_url: facility?.image_url || ''
     });
-  };
+  }, []);
 
-  const startAddingFacility = () => {
+  const startAddingFacility = useCallback(() => {
     resetForm();
     setShowAddForm(true);
     setEditingFacility(null);
-  };
+  }, [resetForm]);
 
-  const startEditingFacility = (facility: FacilityData) => {
+  const startEditingFacility = useCallback((facility: FacilityData) => {
     resetForm(facility);
     setEditingFacility(facility);
     setShowAddForm(false);
-  };
+  }, [resetForm]);
 
-  const cancelForm = () => {
+  const cancelForm = useCallback(() => {
     setShowAddForm(false);
     setEditingFacility(null);
     resetForm();
-  };
+  }, [resetForm]);
 
   useEffect(() => {
     loadFacilities();
@@ -88,7 +187,7 @@ export function FacilitiesEditor() {
     }
   };
 
-  const handleSaveFacility = async () => {
+  const handleSaveFacility = useCallback(async () => {
     if (!formData.title.trim() || !formData.description.trim()) {
       toast({
         title: "Error",
@@ -144,7 +243,7 @@ export function FacilitiesEditor() {
     } finally {
       setSaving(false);
     }
-  };
+  }, [formData, editingFacility, facilities.length, toast, cancelForm]);
 
   const handleDeleteFacility = async (id: string) => {
     if (!confirm('Are you sure you want to delete this facility?')) return;
@@ -172,69 +271,6 @@ export function FacilitiesEditor() {
         variant: "destructive"
       });
     }
-  };
-
-  const FacilityForm = () => {
-    const handleSubmit = (e: React.FormEvent) => {
-      e.preventDefault();
-      handleSaveFacility();
-    };
-
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>{editingFacility ? 'Edit Facility' : 'Add New Facility'}</CardTitle>
-          <CardDescription>
-            {editingFacility ? 'Update the facility information' : 'Create a new facility entry'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label htmlFor="title">Facility Name *</Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                placeholder="e.g., Modern Library"
-                required
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="description">Description *</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Describe the facility and its features..."
-                rows={3}
-                required
-              />
-            </div>
-            
-            <div>
-              <ImageUpload
-                label="Facility Image"
-                value={formData.image_url}
-                onChange={(url) => setFormData(prev => ({ ...prev, image_url: url }))}
-                folder="facilities"
-              />
-            </div>
-            
-            <div className="flex gap-2">
-              <Button type="submit" disabled={saving}>
-                {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                {saving ? 'Saving...' : 'Save Facility'}
-              </Button>
-              <Button type="button" variant="outline" onClick={cancelForm}>
-                Cancel
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
-    );
   };
 
   if (loading) {
@@ -288,7 +324,14 @@ export function FacilitiesEditor() {
 
       {/* Add/Edit Form */}
       {(showAddForm || editingFacility) && (
-        <FacilityForm />
+        <FacilityForm 
+          formData={formData}
+          setFormData={setFormData}
+          editingFacility={editingFacility}
+          saving={saving}
+          onSubmit={handleSaveFacility}
+          onCancel={cancelForm}
+        />
       )}
 
       {/* Facilities List */}
