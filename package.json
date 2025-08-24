@@ -9,7 +9,9 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview",
-    "deploy": "vite build && firebase deploy"
+    "deploy": "vite build && firebase deploy",
+    "update-sitemap": "node scripts/update-sitemap.js",
+    "build:prod": "node scripts/update-sitemap.js && vite build && firebase deploy"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

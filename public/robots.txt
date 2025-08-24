@@ -1,7 +1,14 @@
+User-agent: *
+Allow: /
+
+# Allow all major search engine bots
 User-agent: Googlebot
 Allow: /
 
 User-agent: Bingbot
+Allow: /
+
+User-agent: Slurp
 Allow: /
 
 User-agent: Twitterbot
@@ -10,5 +17,13 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
+# Disallow admin pages from being crawled
 User-agent: *
-Allow: /
+Disallow: /admin
+Disallow: /admin/*
+
+# Allow sitemap
+Sitemap: https://school-verse-portal.web.app/sitemap.xml
+
+# Crawl-delay (optional - be nice to servers)
+Crawl-delay: 1
