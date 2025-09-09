@@ -56,6 +56,7 @@ const Header = () => {
             <NavLink to="/about">About</NavLink>
             <NavLink to="/gallery">Gallery</NavLink>
             <NavLink to="/materials">Materials</NavLink>
+            <NavLink to="/agsa">AGSA</NavLink>
           </nav>
 
           {/* Actions */}
@@ -88,6 +89,7 @@ const Header = () => {
             <NavLink to="/about" mobile onClick={closeMobileMenu}>About</NavLink>
             <NavLink to="/gallery" mobile onClick={closeMobileMenu}>Gallery</NavLink>
             <NavLink to="/materials" mobile onClick={closeMobileMenu}>Materials</NavLink>
+            <NavLink to="/agsa" mobile onClick={closeMobileMenu}>AGSA</NavLink>
             <div className="px-4 py-3">
               <Link to="/admin" onClick={closeMobileMenu}>
                 <Button variant="outline" className="w-full">
