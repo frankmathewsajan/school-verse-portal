@@ -7,6 +7,19 @@ import { useToast } from '@/hooks/use-toast';
 import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { UploadService } from '@/services/uploadService';
 
+// Helper: Allow only http, https, and protocol-relative URLs
+function isSafeImageUrl(url: string | null | undefined): boolean {
+  if (!url) return false;
+  try {
+    // Allow protocol-relative URLs (e.g., //example.com/image.png)
+    if (url.startsWith('//')) return true;
+    const parsed = new URL(url, window.location.origin);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 interface ImageUploadProps {
   label: string;
   value: string;
@@ -112,7 +125,7 @@ export function ImageUpload({
       <Label>{label}</Label>
       
       {/* Current Image Preview */}
-      {(value || preview) && (
+      {(value || preview) && isSafeImageUrl(preview || value) && (
         <Card>
           <CardContent className="p-4">
             <div className="relative group">
