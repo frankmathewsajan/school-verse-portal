@@ -3,6 +3,16 @@ import React from 'react';
 /**
  * Utility function to detect and parse URLs in text
  */
+// Helper: returns true if urlStr is a valid http/https URL, false otherwise.
+const isSafeHttpUrl = (urlStr: string): boolean => {
+  try {
+    const url = new URL(urlStr, 'https://example.com');
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+};
+
 export const parseTextWithLinks = (text: string): React.ReactNode[] => {
   // Regex to match URLs (http, https, www, or naked domains)
   const urlRegex = /(https?:\/\/[^\s]+|www\.[^\s]+|[^\s]+\.[a-z]{2,}(?:\/[^\s]*)?)/gi;
@@ -18,18 +28,23 @@ export const parseTextWithLinks = (text: string): React.ReactNode[] => {
       if (!part.startsWith('http://') && !part.startsWith('https://')) {
         href = 'https://' + part;
       }
-      
-      return (
-        <a
-          key={index}
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-600 hover:text-blue-800 underline break-all"
-        >
-          {part}
-        </a>
-      );
+      // Only render link if url is valid and protocol is safe (http/https)
+      if (isSafeHttpUrl(href)) {
+        return (
+          <a
+            key={index}
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:text-blue-800 underline break-all"
+          >
+            {part}
+          </a>
+        );
+      } else {
+        // Unsafe protocol or invalid URL, render as plain text
+        return part;
+      }
     }
     
     return part;
