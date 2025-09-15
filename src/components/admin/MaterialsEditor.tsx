@@ -71,7 +71,11 @@ export function MaterialsEditor() {
 
   const getYouTubeEmbedUrl = (url?: string | null) => {
     const id = getYouTubeId(url);
-    return id ? `https://www.youtube.com/embed/${id}` : null;
+    // YouTube IDs are exactly 11 characters, only A-Za-z0-9_- allowed
+    if (id && /^[-_A-Za-z0-9]{11}$/.test(id)) {
+      return `https://www.youtube.com/embed/${id}`;
+    }
+    return null;
   };
 
   const loadMaterials = async () => {
