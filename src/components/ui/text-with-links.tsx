@@ -29,11 +29,12 @@ export const parseTextWithLinks = (text: string): React.ReactNode[] => {
         href = 'https://' + part;
       }
       // Only render link if url is valid and protocol is safe (http/https)
-      if (isSafeHttpUrl(href)) {
+      const sanitizedHref = sanitizeUrl(href);
+      if (sanitizedHref) {
         return (
           <a
             key={index}
-            href={href}
+            href={sanitizedHref}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 hover:text-blue-800 underline break-all"
