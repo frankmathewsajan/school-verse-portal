@@ -7,14 +7,21 @@ import { useToast } from '@/hooks/use-toast';
 import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { UploadService } from '@/services/uploadService';
 
-// Helper: Allow only http, https, and protocol-relative URLs
+// Helper: Allow only http and https URLs, and optionally restrict to trusted domains and image file extensions
 function isSafeImageUrl(url: string | null | undefined): boolean {
   if (!url) return false;
   try {
-    // Allow protocol-relative URLs (e.g., //example.com/image.png)
-    if (url.startsWith('//')) return true;
+    // Disallow protocol-relative URLs (starting with //)
+    if (url.startsWith('//')) return false;
     const parsed = new URL(url, window.location.origin);
-    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    // Only allow http and https protocols
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return false;
+    // Optionally allow only specific trusted hostnames (uncomment and edit domain list if needed)
+    // const allowedHosts = ['example.com', 'your-cdn.com'];
+    // if (!allowedHosts.includes(parsed.hostname)) return false;
+    // Optionally allow only image file types
+    if (!/\.(jpe?g|png|webp|gif)$/i.test(parsed.pathname)) return false;
+    return true;
   } catch {
     return false;
   }
