@@ -3,9 +3,9 @@
 ## 🏗️ Complete Setup Instructions for St. G. D. Convent School Portal
 
 ### Project Information
-- **Project URL**: https://plgjavfrwcphrehmthdv.supabase.co
-- **Project Reference**: `plgjavfrwcphrehmthdv`
-- **Anon Key**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsZ2phdmZyd2NwaHJlaG10aGR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE2ODE3ODcsImV4cCI6MjA2NzI1Nzc4N30.73hjYMk1hrqiuhFV-AoVtbRdYc6biciDqnFhtz4sq5o`
+- **Project URL**: https://your-project-id.supabase.co
+- **Project Reference**: `your-project-id`
+- **Anon Key**: `your-anon-key-here`
 
 ---
 
@@ -403,10 +403,10 @@ SELECT COUNT(*) FROM public.school_life_gallery;
 For production deployment, create these environment variables:
 
 ```bash
-# Production Environment Variables
-VITE_SUPABASE_URL=https://plgjavfrwcphrehmthdv.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsZ2phdmZyd2NwaHJlaG10aGR2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE2ODE3ODcsImV4cCI6MjA2NzI1Nzc4N30.73hjYMk1hrqiuhFV-AoVtbRdYc6biciDqnFhtz4sq5o
-VITE_ADMIN_PASSKEY=143143
+# Production Environment Variables - NEVER commit these!
+VITE_SUPABASE_URL=https://your-project-id.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
+VITE_ADMIN_PASSKEY=your-secure-passkey-here
 ```
 
 ---

@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { User } from "@supabase/supabase-js";
 
-const ADMIN_PASSKEY = "143143";
-const ALLOWED_ADMIN_DOMAINS = ["gmail.com", "outlook.com", "hotmail.com"];
+// SECURITY: Use environment variables instead of hardcoded values
+const ADMIN_PASSKEY = import.meta.env.VITE_ADMIN_PASSKEY || "CHANGE_ME_IN_PRODUCTION";
+const ALLOWED_ADMIN_DOMAINS = import.meta.env.VITE_ALLOWED_DOMAINS?.split(',') || ["gmail.com", "outlook.com", "hotmail.com"];
 
 export const useAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
