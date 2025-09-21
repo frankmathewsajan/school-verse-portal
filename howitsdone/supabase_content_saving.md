@@ -237,7 +237,7 @@ INSERT INTO public.vision_section (
 1. **Login**: Visit `/admin/login`
 2. **Sign Up**: Use allowed domains (gmail.com, outlook.com, hotmail.com)
 3. **Verify Email**: Check email for verification link
-4. **Enter Passkey**: Use `143143` for admin access
+4. **Enter Passkey**: Use configured admin passkey for access
 5. **Edit Content**: Use the tabbed interface to edit different sections:
    - **Hero**: Main homepage banner content
    - **About**: School information and leadership

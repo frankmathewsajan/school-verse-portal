@@ -49,7 +49,7 @@ Based on the authentication documentation, I have successfully implemented the c
    - Powered by Supabase Auth
 
 2. **Step 2: Admin Passkey Verification**
-   - Hardcoded passkey: `143143`
+   - Secure passkey: Configure in environment variables
    - Domain validation for admin access
    - localStorage persistence for admin status
    - Automatic admin_users table record creation
@@ -90,13 +90,13 @@ Based on the authentication documentation, I have successfully implemented the c
 ## 🔧 Configuration Details
 
 ### Supabase Configuration
-- **URL**: `https://plgjavfrwcphrehmthdv.supabase.co`
-- **Project ID**: `plgjavfrwcphrehmthdv`
+- **URL**: `https://your-project-id.supabase.co`
+- **Project ID**: `your-project-id`
 - **API Key**: Configured in client.ts
 - **Database**: PostgreSQL with proper schemas
 
 ### Authentication Settings
-- **Admin Passkey**: `143143`
+- **Admin Passkey**: Configure in environment variables (VITE_ADMIN_PASSKEY)
 - **Allowed Domains**: `["gmail.com", "outlook.com", "hotmail.com"]`
 - **Session Storage**: localStorage + Supabase session management
 
@@ -106,7 +106,7 @@ Based on the authentication documentation, I have successfully implemented the c
 1. Navigate to `/admin/login`
 2. **Sign Up**: Create account with allowed email domain
 3. **Sign In**: Use email/password credentials
-4. **Verify**: Enter admin passkey `143143`
+4. **Verify**: Enter admin passkey (configured in env)
 5. **Access**: Full admin dashboard access granted
 
 ### For Developers
@@ -118,7 +118,7 @@ Based on the authentication documentation, I have successfully implemented the c
 ## 🔒 Security Notes
 
 ### Current Implementation
-- Admin passkey is hardcoded (`143143`)
+- Admin passkey uses environment variables for security
 - Supabase credentials are in source code
 - Email domain restrictions enforced
 
@@ -140,7 +140,7 @@ The system is now running at: **http://localhost:8081/**
    - ✅ Allowed domain (gmail.com, outlook.com, hotmail.com)
    - ❌ Disallowed domain (should fail)
 3. Sign in with created credentials
-4. Enter passkey: `143143`
+4. Enter passkey: (configured in environment variables)
 5. Access admin dashboard
 6. Test logout functionality
 7. Verify session persistence (refresh browser)
