@@ -8,12 +8,12 @@ The St. G. D. Convent School website implements a two-factor authentication syst
 ## Architecture
 
 ### 1. Supabase Integration
-- **Backend Service**: Supabase (hosted at `https://sfffnjjozmkmugdchhaq.supabase.co`)
+- **Backend Service**: Supabase (configure with your own instance)
 - **Client Library**: `@supabase/supabase-js` v2.49.9
 - **Database**: PostgreSQL with admin_users table for role management
 - **Authentication**: Supabase Auth with email/password and session management
-- **API Key**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmZmZuampvem1rbXVnZGNoaGFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5MzI2NzcsImV4cCI6MjA2NDUwODY3N30.bdG4nGps8LaQZ0ILXv-lMHPU1GwoJ6B-0pD_qsvLaQ4`
-- **Project ID**: `sfffnjjozmkmugdchhaq`
+- **API Key**: Use environment variables (see .env.example)
+- **Project ID**: Configure in your Supabase dashboard
 
 #### Supabase Client Configuration
 ```typescript
@@ -21,8 +21,15 @@ The St. G. D. Convent School website implements a two-factor authentication syst
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = "https://sfffnjjozmkmugdchhaq.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNmZmZuampvem1rbXVnZGNoaGFxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg5MzI2NzcsImV4cCI6MjA2NDUwODY3N30.bdG4nGps8LaQZ0ILXv-lMHPU1GwoJ6B-0pD_qsvLaQ4";
+// SECURITY: Use environment variables instead of hardcoded credentials
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
+  throw new Error(
+    'Missing Supabase environment variables. Please check your .env file contains VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY'
+  );
+}
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
 ```
@@ -40,7 +47,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 
 **Step 2: Admin Passkey Verification**
 1. After successful email/password auth, user must enter admin passkey
-2. Hardcoded passkey: `143143` (stored in useAuth hook)
+2. Secure passkey: Configure in environment variables (VITE_ADMIN_PASSKEY)
 3. System checks if user's email domain is in allowed list
 4. On successful verification, admin status is stored in localStorage
 5. User record is automatically created/updated in `admin_users` table
@@ -279,8 +286,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-const ADMIN_PASSKEY = "143143";
-const ALLOWED_ADMIN_DOMAINS = ["gmail.com", "outlook.com", "hotmail.com"];
+const ADMIN_PASSKEY = import.meta.env.VITE_ADMIN_PASSKEY || "CHANGE_ME_IN_PRODUCTION";
+const ALLOWED_ADMIN_DOMAINS = import.meta.env.VITE_ALLOWED_DOMAINS?.split(',') || ["gmail.com", "outlook.com", "hotmail.com"];
 
 export const useAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -737,10 +744,10 @@ export default App;
 
 #### Environment Variables Setup
 ```bash
-# .env file (for production)
-VITE_SUPABASE_URL=https://sfffnjjozmkmugdchhaq.supabase.co
-VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-VITE_ADMIN_PASSKEY=143143
+# .env file (for production) - NEVER commit this file!
+VITE_SUPABASE_URL=https://your-project-id.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
+VITE_ADMIN_PASSKEY=your-secure-random-passkey-here
 VITE_ALLOWED_DOMAINS=gmail.com,outlook.com,hotmail.com
 ```
 
@@ -789,7 +796,7 @@ export default defineConfig({
 
 **Admin Access Denied**:
 1. Verify email domain is in allowed list
-2. Check passkey is correct (143143)
+2. Check passkey is correct (configured in environment variables)
 3. Ensure user record exists in admin_users table
 4. Check browser network tab for API errors
 

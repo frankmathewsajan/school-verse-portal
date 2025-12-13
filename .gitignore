@@ -45,13 +45,33 @@ jspm_packages/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variables file
+# dotenv environment variables file - CRITICAL: NEVER COMMIT THESE
 .env
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
 .env.staging
+.env.example
+.env.*
+
+# SECURITY: Files containing credentials or sensitive data
+*credentials*
+*secrets*
+*keys*
+*.key
+*.pem
+*.p12
+*.pfx
+
+# Test files that may contain hardcoded credentials
+*-test.js
+*-test.mjs
+populate-*.mjs
+comprehensive-*.js
+auth-flow-*.js
+test-*.js
+test-*.mjs
 
 # Supabase
 .supabase/

@@ -2,6 +2,18 @@
 
 School Verse Portal is a comprehensive web application designed for St. G. D. Convent School to provide easy access to school information, photo galleries, and educational resources for students, parents, and the school community.
 
+## 🔐 IMPORTANT: Security Setup Required
+
+**This repository has been secured for public access.** All credentials have been removed and must be configured via environment variables.
+
+### Quick Start:
+1. **Copy environment template**: `cp .env.example .env`
+2. **Configure your credentials** in the `.env` file
+3. **See [SECURITY_SETUP.md](SECURITY_SETUP.md)** for complete setup instructions
+4. **Review [V.md](V.md)** for security vulnerability assessment
+
+⚠️ **DO NOT use default values in production!**
+
 ## About the Application
 
 The School Verse Portal serves as a central hub for all school-related information and resources. It provides an intuitive interface for browsing school activities, accessing learning materials, and staying updated with the latest school news and events.
@@ -98,13 +110,75 @@ The application uses the following main navigation structure:
 - **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
 - **Search Functionality**: Comprehensive search across photos and materials
 - **Filtering System**: Advanced filtering options for better content discovery
-- **Secure Admin Access**: Protected administrative interface
+- **Secure Admin Access**: Protected administrative interface with environment-based authentication
 - **File Management**: Efficient handling of images and document uploads
 - **Real-time Updates**: Dynamic content loading and updates
+- **🔒 Security**: Environment variables for all sensitive configuration
+- **🛡️ No Hardcoded Credentials**: All secrets managed via .env files
+
+## 🚀 Development Setup
+
+### Prerequisites
+- Node.js (v18 or higher)
+- npm or yarn
+- Supabase account
+
+### Installation
+```bash
+# Clone the repository
+git clone https://github.com/frankmathewsajan/school-verse-portal.git
+cd school-verse-portal
+
+# Install dependencies
+npm install
+
+# Copy environment template
+cp .env.example .env
+
+# Configure your environment variables (see SECURITY_SETUP.md)
+# Edit .env with your actual Supabase credentials
+
+# Start development server
+npm run dev
+```
+
+### Required Environment Variables
+```bash
+VITE_SUPABASE_URL=https://your-project-id.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
+VITE_ADMIN_PASSKEY=your-secure-passkey-here
+VITE_ALLOWED_DOMAINS=gmail.com,outlook.com,hotmail.com
+```
+
+## 📁 Project Structure
+
+```
+school-verse-portal/
+├── src/
+│   ├── components/          # Reusable UI components
+│   ├── pages/              # Main application pages
+│   ├── hooks/              # Custom React hooks
+│   ├── integrations/       # External service integrations
+│   └── services/           # Business logic and API calls
+├── howitsdone/             # Documentation and guides
+├── .env.example            # Environment variable template
+├── SECURITY_SETUP.md       # Security setup instructions
+└── V.md                    # Security vulnerability assessment
+```
 
 ## Support
 
 For technical support or questions about using the School Verse Portal, please contact the school administration or IT support team.
+
+## 🔒 Security
+
+This project follows security best practices:
+- No hardcoded credentials in source code
+- Environment variables for all sensitive configuration
+- Sanitized documentation and examples
+- Regular security assessments
+
+For security concerns, please review the [V.md](V.md) vulnerability assessment and follow the [SECURITY_SETUP.md](SECURITY_SETUP.md) guidelines.
 
 ---
 
